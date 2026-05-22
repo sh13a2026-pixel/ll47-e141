@@ -1,0 +1,30 @@
+# Chạy backend + MongoDB tại local bằng 1 lệnh:  docker compose up --build
+# (Khi deploy thật bạn sẽ dùng MongoDB Atlas + Render thay cho compose này.)
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      PUBLIC_URL: "http://localhost:8080"
+      MONGODB_URI: "mongodb://mongo:27017"
+      MONGODB_DB: "ll47"
+      JWT_SECRET: "doi-chuoi-bi-mat-nay-khi-chay-that"
+      CORS_ORIGIN: "*"
+      MAX_UPLOAD_MB: "25"
+      # FIREBASE_SERVICE_ACCOUNT: '{...json...}'   # bật nếu muốn push nền
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:

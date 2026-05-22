@@ -1,0 +1,66 @@
+// Firebase Storage Security Rules cho LL47 e141
+// Deploy: firebase deploy --only storage
+// (hoặc dán vào Firebase Console -> Storage -> Rules)
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid))
+                    .data.isAdmin == true;
+    }
+
+    // Ảnh / minh chứng F47: theo cấu trúc f47/{campaignId}/{uid}/...
+    match /f47/{campaignId}/{uid}/{fileName} {
+      // Đọc: tất cả user đăng nhập (để xem minh chứng của nhau)
+      allow read: if isSignedIn();
+      // Ghi: chỉ chính chủ uid được upload vào folder của mình. Giới hạn 10MB,
+      // chỉ image/*.
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Ảnh đại diện user: avatars/{uid}/{anyFile}
+    // Hỗ trợ cả pattern cũ avatars/{uid} và mới avatars/{uid}/uuid_filename
+    match /avatars/{uid} {
+      allow read: if isSignedIn();
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+    match /avatars/{uid}/{fileName=**} {
+      allow read: if isSignedIn();
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Đính kèm tin nhắn chat: chat/{roomId}/{uid}/...
+    match /chat/{roomId}/{uid}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 25 * 1024 * 1024;
+    }
+
+    // File báo cáo: reports/{reportId}/{uid}/...
+    match /reports/{reportId}/{uid}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 25 * 1024 * 1024;
+    }
+
+    // Mặc định chặn
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

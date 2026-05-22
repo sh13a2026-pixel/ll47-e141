@@ -1,0 +1,89 @@
+// Firestore Security Rules cho LL47 e141
+// Deploy bằng: firebase deploy --only firestore:rules
+// (hoặc dán vào Firebase Console -> Firestore -> Rules)
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------- Helper functions --------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isUid(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      // Admin được đánh dấu trong document users/{uid} với field isAdmin=true.
+      // (Sau khi deploy, bạn cần vào Firestore tạo doc users/<uid> và set isAdmin=true
+      // cho ít nhất 1 tài khoản chỉ huy.)
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // -------- Profile user --------
+    match /users/{uid} {
+      // Mỗi user đọc/ghi profile của mình. Admin đọc tất cả.
+      allow read: if isUid(uid) || isAdmin();
+      allow write: if isUid(uid) || isAdmin();
+
+      // Sub-collection FCM tokens — chỉ chính chủ
+      match /fcm_tokens/{token} {
+        allow read, write: if isUid(uid);
+      }
+    }
+
+    // -------- Dữ liệu app dùng chung (units, soldiers, shifts, reports, ...) --------
+    // Mỗi key được lưu thành document trong collection 'app_data'.
+    match /app_data/{key} {
+      // Mọi người đăng nhập đều đọc được dữ liệu chung.
+      allow read: if isSignedIn();
+
+      // Ghi: cho phép user đăng nhập tự seed lần đầu (khi doc chưa tồn tại),
+      // hoặc admin update.
+      // GHI CHÚ AN TOÀN HƠN: sau khi seed lần đầu, khoá lại chỉ admin được sửa.
+      // (Hiện đang để thoáng để app tự seed dữ liệu lần đầu chạy.)
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn();
+    }
+
+    // -------- Phòng chat --------
+    match /chat_rooms/{roomId} {
+      // Mọi user đăng nhập đều thấy danh sách phòng (sau này có thể siết theo members).
+      allow read: if isSignedIn();
+      // Chỉ admin tạo / xoá phòng. User thường được phép update lastMessage/lastAt
+      // (để gửi tin cập nhật thông tin phòng).
+      allow create, delete: if isAdmin();
+      allow update: if isSignedIn();
+
+      match /messages/{msgId} {
+        // Đọc: thành viên phòng. (Đơn giản: tất cả user đăng nhập, có thể siết
+        // theo array 'members' trong doc room.)
+        allow read: if isSignedIn();
+        // Tạo: senderId phải bằng uid hiện tại
+        allow create: if isSignedIn()
+                      && request.resource.data.senderId == request.auth.uid;
+        // Sửa / xoá: chỉ chính chủ
+        allow update, delete: if isSignedIn()
+                              && resource.data.senderId == request.auth.uid;
+      }
+    }
+
+    // -------- Hàng đợi push notification (Cloud Function consume) --------
+    match /fcm_queue/{docId} {
+      // Server-side (Cloud Function) đọc/ghi qua Admin SDK (bypass rules).
+      // Client chỉ được TẠO doc mới (gửi yêu cầu push), không đọc / sửa của người khác.
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Mặc định: chặn tất cả collection khác
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,46 @@
+[project]
+name = "ll47-e141"
+version = "2.6.0"
+description = "Quản lý Lực lượng 47 — Trung đoàn 141"
+authors = [{ name = "e141", email = "it@e141.mil.vn" }]
+requires-python = ">=3.9"
+dependencies = ["flet>=0.25.0"]
+
+[tool.flet]
+# Tên app + bundle id
+app.name = "Quản lý LL47 e141"
+app.short_name = "LL47e141"
+app.module = "main"
+
+# Bundle ID (đổi theo tổ chức của bạn)
+android.adaptive_icon_background = "#1a4731"
+android.package = "vn.mil.e141.ll47"
+
+# iOS
+ios.bundle_id = "vn.mil.e141.ll47"
+
+# Tên tổ chức / quyền
+org = "vn.e141"
+build_number = 26
+build_version = "2.6.0"
+
+# Permissions
+android.permissions = [
+    "android.permission.INTERNET",
+    "android.permission.READ_EXTERNAL_STORAGE",
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+    "android.permission.CAMERA",
+]
+
+ios.info_plist."NSCameraUsageDescription" = "Cần camera để chụp minh chứng F47"
+ios.info_plist."NSPhotoLibraryUsageDescription" = "Cần truy cập ảnh để gắn minh chứng"
+
+# ============== SPLASH SCREEN ==============
+# Màu nền splash khi mở app (thay vì màn trắng) — khớp với GREEN_DARK trong app
+splash.color = "#1a4731"
+splash.dark_color = "#1a4731"
+# Dùng logo.png làm splash (đã có trong assets/)
+splash.image = "assets/logo.png"
+splash.image_dark = "assets/logo.png"
+splash.android_12.color = "#1a4731"
+splash.android_12.image = "assets/logo.png"

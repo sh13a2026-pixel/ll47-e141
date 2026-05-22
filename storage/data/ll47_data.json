@@ -1,0 +1,5736 @@
+{
+  "notifs": [
+    {
+      "type": "guest",
+      "read": true,
+      "title": "Yêu cầu tiếp khách cần duyệt (đỗ văn m)",
+      "at": 1779119188096,
+      "link": "guest:5214864c9b8f4608bc6c7452e4182785",
+      "desc": "Hà Văn B trình lên — vui lòng xem & quyết định.",
+      "targetUid": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+      "id": "n1779119188096"
+    },
+    {
+      "desc": "báo cáo bài viết",
+      "link": "f47",
+      "targetUid": "",
+      "id": "n1779118941067",
+      "type": "success",
+      "read": true,
+      "at": 1779118941067,
+      "title": "✅ Đã nộp minh chứng F47"
+    },
+    {
+      "id": "n1779118885727",
+      "targetUid": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+      "desc": "Hãy làm chiến dịch 'báo cáo bài viết'",
+      "link": "f47",
+      "at": 1779118885727,
+      "title": "📢 Bạn được giục",
+      "type": "f47",
+      "read": true
+    }
+  ],
+  "reports": [],
+  "f47Campaigns": [
+    {
+      "createdAt": 1779118699287,
+      "creatorRole": "",
+      "platforms": [
+        "Facebook"
+      ],
+      "creator": "admin",
+      "scopeUnits": [
+        "Đại đội 16",
+        "Đại đội 25",
+        "Tiểu đoàn 8 (Đại đội 5-8)",
+        "Cơ quan HC-KT",
+        "Tiểu đoàn 7 (Đại đội 1-4)",
+        "Đại đội 15",
+        "Cơ quan Tham mưu",
+        "Đại đội 18",
+        "Đại đội 24",
+        "Cơ quan Chính Trị",
+        "Đại đội 14",
+        "Đại đội 20",
+        "Đại đội 17",
+        "Tiểu đoàn 9 (Đại đội 9-12)"
+      ],
+      "submissions": {
+        "K4roja84gZQasIz6q6KlU7VTM8X2": {
+          "imageCount": 0,
+          "images": [],
+          "links": [
+            "4trret"
+          ],
+          "by": "K4roja84gZQasIz6q6KlU7VTM8X2",
+          "byName": "Hà Văn K",
+          "at": 1779118826180,
+          "note": "retret"
+        },
+        "CmfOxPa0GWflRY0vQsIid6whuCz1": {
+          "links": [
+            "gdfg"
+          ],
+          "images": [],
+          "imageCount": 0,
+          "note": "đã báo cáo",
+          "at": 1779118777610,
+          "byName": "Bế Ngọc Cường",
+          "by": "CmfOxPa0GWflRY0vQsIid6whuCz1"
+        },
+        "pO119VWdHZb82NfyTHGUsMnxPjI3": {
+          "links": [
+            "tỷhtr"
+          ],
+          "images": [],
+          "imageCount": 0,
+          "note": "rtry",
+          "at": 1779118940959,
+          "byName": "hà văn Mạnh",
+          "by": "pO119VWdHZb82NfyTHGUsMnxPjI3"
+        }
+      },
+      "id": "c_1779118699287",
+      "members": [
+        "3MZmicPwpiO6sI8WSMTwQHT8HbP2",
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+        "7q6YPfdMbMZi4yKiG8I6lw8wkb32",
+        "CmfOxPa0GWflRY0vQsIid6whuCz1",
+        "K4roja84gZQasIz6q6KlU7VTM8X2",
+        "LUJ6ryWB6OfkofKqiqvjU4FouhL2",
+        "Mm2o48TsH1Zkz5hvxp8dfkYqd863",
+        "VLsfV0MzuzeojXhER9RiZWpPla12",
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+        "Wa9kZ07GEccQZFb4gAfHLvwy5GW2",
+        "pO119VWdHZb82NfyTHGUsMnxPjI3",
+        "vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2"
+      ],
+      "status": "live",
+      "title": "báo cáo bài viết",
+      "scope": "Toàn Trung đoàn",
+      "sampleMediaUrl": "",
+      "targetLink": "gfgfg",
+      "deadline": 1779129499287,
+      "desc": "các đồng chí bấm vào link báo cáo với nội dung... và chụp ảnh báo cáo..."
+    },
+    {
+      "createdAt": 1779107370336,
+      "creatorRole": "Chủ nhiệm Chính trị",
+      "platforms": [
+        "Facebook",
+        "TikTok"
+      ],
+      "creator": "Hà Văn B",
+      "scopeUnits": [
+        "Đại đội 20",
+        "Đại đội 15",
+        "Đại đội 18",
+        "Đại đội 14",
+        "Đại đội 24",
+        "Đại đội 25",
+        "Cơ quan HC-KT",
+        "Tiểu đoàn 8 (Đại đội 5-8)",
+        "Tiểu đoàn 9 (Đại đội 9-12)",
+        "Cơ quan Tham mưu",
+        "Tiểu đoàn 7 (Đại đội 1-4)",
+        "Đại đội 16",
+        "Cơ quan Chính Trị",
+        "Đại đội 17"
+      ],
+      "submissions": {
+        "CmfOxPa0GWflRY0vQsIid6whuCz1": {
+          "links": [
+            "đw"
+          ],
+          "imageCount": 0,
+          "images": [],
+          "note": "sds",
+          "by": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+          "at": 1779109112512,
+          "byName": "Bế Ngọc Cường"
+        },
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2": {
+          "note": "ewr",
+          "byName": "Hà Văn B",
+          "at": 1779107534541,
+          "by": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+          "links": [
+            "rewr"
+          ],
+          "images": [],
+          "imageCount": 0
+        }
+      },
+      "id": "c_1779107370336",
+      "members": [
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+        "7q6YPfdMbMZi4yKiG8I6lw8wkb32",
+        "CmfOxPa0GWflRY0vQsIid6whuCz1",
+        "LUJ6ryWB6OfkofKqiqvjU4FouhL2",
+        "Mm2o48TsH1Zkz5hvxp8dfkYqd863",
+        "VLsfV0MzuzeojXhER9RiZWpPla12",
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+        "Wa9kZ07GEccQZFb4gAfHLvwy5GW2",
+        "pO119VWdHZb82NfyTHGUsMnxPjI3",
+        "vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2"
+      ],
+      "title": "báo cáo bài viết",
+      "status": "live",
+      "scope": "Toàn Trung đoàn",
+      "sampleMediaUrl": "",
+      "deadline": 1779193770336,
+      "desc": "các đồng chí...."
+    }
+  ],
+  "shifts": [
+    {
+      "type": "night",
+      "location": "Cổng chính",
+      "status": "active",
+      "platoon": "Trung đội 2",
+      "date": 1778196150997,
+      "id": "sh1"
+    },
+    {
+      "id": "sh2",
+      "platoon": "Trung đội 1",
+      "date": 1778282550997,
+      "status": "pending",
+      "location": "Nội vụ",
+      "type": "day"
+    },
+    {
+      "id": "sh3",
+      "platoon": "Trung đội 3",
+      "date": 1778368950997,
+      "status": "pending",
+      "location": "Cổng chính",
+      "type": "night"
+    },
+    {
+      "status": "done",
+      "location": "Nội vụ",
+      "type": "day",
+      "id": "sh4",
+      "platoon": "Trung đội 1",
+      "date": 1778109750997
+    },
+    {
+      "type": "day",
+      "status": "pending",
+      "location": "Cổng chính",
+      "date": 1778456808657,
+      "platoon": "Trung đội mới",
+      "id": "sh1778370408657"
+    },
+    {
+      "type": "day",
+      "location": "Cổng chính",
+      "status": "pending",
+      "date": 1778865383920,
+      "platoon": "Trung đội mới",
+      "id": "sh1778778983920"
+    }
+  ],
+  "activity": [
+    {
+      "at": 1779273902348,
+      "text": "Phát động F47: xzscxz"
+    },
+    {
+      "text": "Nộp F47: báo cáo bài viết",
+      "at": 1779298943366
+    },
+    {
+      "at": 1779298636861,
+      "text": "Triển khai CTĐ-CTCT: [TH] dsqad"
+    },
+    {
+      "at": 1779298553236,
+      "text": "Phát động F47: sdfdsfs"
+    },
+    {
+      "at": 1779244060757,
+      "text": "Sửa F47: báo cáo bài viết"
+    },
+    {
+      "at": 1779153090990,
+      "text": "Phát động F47: fđf"
+    },
+    {
+      "at": 1779152944265,
+      "text": "Phát động F47: báo cáo bài viết"
+    },
+    {
+      "text": "Phát động F47: đấu tranh...",
+      "at": 1779151246419
+    },
+    {
+      "at": 1779119027642,
+      "text": "Triển khai CTĐ-CTCT: [DV] tổng hợp ý kiến"
+    },
+    {
+      "at": 1779118940972,
+      "text": "Nộp F47: báo cáo bài viết"
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Trung tá Đỗ Văn B",
+      "at": 1779118886340
+    },
+    {
+      "at": 1779118885619,
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Binh nhất Nông Văn Nam"
+    },
+    {
+      "at": 1779118884917,
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Thiếu úy Ngô Mạnh Tiến"
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Binh nhì nguyễn Văn Nam",
+      "at": 1779118884175
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Trung úy Nguyễn Văn C",
+      "at": 1779118883467
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Thượng úy nguyễn Văn A",
+      "at": 1779118882717
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Thiếu úy Hà Văn Nam",
+      "at": 1779118881955
+    },
+    {
+      "at": 1779118881246,
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Thượng úy hà văn Mạnh"
+    },
+    {
+      "at": 1779118880587,
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Trung tá Hà Văn B"
+    },
+    {
+      "at": 1779118880026,
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Binh nhì haha"
+    },
+    {
+      "at": 1779118876717,
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Trung tá Hà Văn B"
+    },
+    {
+      "at": 1779118871777,
+      "text": "Giục F47 [báo cáo bài viết]: đ.c Binh nhì haha"
+    },
+    {
+      "at": 1779118826191,
+      "text": "Nộp F47: báo cáo bài viết"
+    },
+    {
+      "text": "Nộp F47: báo cáo bài viết",
+      "at": 1779118777621
+    },
+    {
+      "at": 1779118699299,
+      "text": "Phát động F47: báo cáo bài viết"
+    },
+    {
+      "at": 1779111535806,
+      "text": "Tạo báo cáo: Báo cáo nhanh từ app Python"
+    },
+    {
+      "at": 1779109112521,
+      "text": "Nộp F47: báo cáo bài viết"
+    },
+    {
+      "at": 1779108449001,
+      "text": "Giục F47 [báo cáo bài viết]: Trung tá Đỗ Văn B"
+    },
+    {
+      "at": 1779108448389,
+      "text": "Giục F47 [báo cáo bài viết]: Binh nhất Nông Văn Nam"
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: Thiếu úy Ngô Mạnh Tiến",
+      "at": 1779108447796
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: Binh nhì nguyễn Văn Nam",
+      "at": 1779108447057
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: Thượng úy nguyễn Văn A",
+      "at": 1779108446221
+    },
+    {
+      "at": 1779108445555,
+      "text": "Giục F47 [báo cáo bài viết]: Thiếu úy Hà Văn Nam"
+    },
+    {
+      "at": 1779108444862,
+      "text": "Giục F47 [báo cáo bài viết]: Thượng úy hà văn Mạnh"
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: Binh nhì haha",
+      "at": 1779108444222
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết]: Trung úy Bế Ngọc Cường",
+      "at": 1779108443619
+    },
+    {
+      "at": 1779107534550,
+      "text": "Nộp F47: báo cáo bài viết"
+    },
+    {
+      "at": 1779107370357,
+      "text": "Phát động F47: báo cáo bài viết"
+    },
+    {
+      "at": 1779107015780,
+      "text": "Admin sửa hồ sơ: e141404"
+    },
+    {
+      "at": 1778934028789,
+      "text": "Admin sửa hồ sơ: e141404"
+    },
+    {
+      "at": 1778885452051,
+      "text": "Admin sửa hồ sơ: e141530"
+    },
+    {
+      "at": 1778885115123,
+      "text": "Admin sửa hồ sơ: e141682"
+    },
+    {
+      "at": 1778836902436,
+      "text": "Phân quyền e141376: admin=False level=4"
+    },
+    {
+      "at": 1778810276364,
+      "text": "Phân quyền e141416: admin=False level=4"
+    },
+    {
+      "text": "Admin sửa hồ sơ: e141416",
+      "at": 1778810270808
+    },
+    {
+      "text": "Admin sửa hồ sơ: e141416",
+      "at": 1778810269583
+    },
+    {
+      "at": 1778804936854,
+      "text": "Admin sửa hồ sơ: e141404"
+    },
+    {
+      "at": 1778804902127,
+      "text": "Admin sửa hồ sơ: e141376"
+    },
+    {
+      "text": "Phân quyền e141467: admin=False level=4",
+      "at": 1778804872128
+    },
+    {
+      "at": 1778804841524,
+      "text": "Admin sửa hồ sơ: e141467"
+    },
+    {
+      "at": 1778778983929,
+      "text": "Thêm ca trực qua app Python"
+    },
+    {
+      "at": 1778763451230,
+      "text": "Xoá F47: fdsf"
+    },
+    {
+      "at": 1778763178377,
+      "text": "Nộp F47: fdsf"
+    },
+    {
+      "at": 1778763119440,
+      "text": "Phát động F47: fdsf"
+    },
+    {
+      "text": "Xoá F47: báo cáo bài viết",
+      "at": 1778762495885
+    },
+    {
+      "at": 1778762492250,
+      "text": "Xoá F47: grt"
+    },
+    {
+      "at": 1778759752327,
+      "text": "Phân quyền e141467: admin=False level=4"
+    },
+    {
+      "text": "Phân quyền e141467: admin=False level=4",
+      "at": 1778759749792
+    },
+    {
+      "text": "Triển khai CTĐ-CTCT: [DV] gfg",
+      "at": 1778759462799
+    },
+    {
+      "text": "Nộp F47: grt",
+      "at": 1778759379341
+    },
+    {
+      "at": 1778759366445,
+      "text": "Phát động F47: grt"
+    },
+    {
+      "text": "Phát động F47: báo cáo bài viết",
+      "at": 1778743987731
+    },
+    {
+      "at": 1778743941882,
+      "text": "Xoá F47: báo cáo bài viết...."
+    },
+    {
+      "text": "Xoá F47: abc",
+      "at": 1778743937010
+    },
+    {
+      "at": 1778743927229,
+      "text": "Xoá F47: 📢 Phản bác luận điệu sai trái về biển Đô"
+    },
+    {
+      "text": "Xoá F47: abc",
+      "at": 1778743919097
+    },
+    {
+      "text": "Xoá F47: abc",
+      "at": 1778743812362
+    },
+    {
+      "text": "Nộp F47: báo cáo bài viết....",
+      "at": 1778719236484
+    },
+    {
+      "text": "Triển khai CTĐ-CTCT: [DV] tổng hợp các ý kiến dân chủ",
+      "at": 1778719160496
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết....]: Thiếu úy Ngô Mạnh Tiến",
+      "at": 1778719092889
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết....]: Thiếu úy Hà Văn Nam",
+      "at": 1778719092015
+    },
+    {
+      "text": "Giục F47 [báo cáo bài viết....]: Thiếu úy Hà Văn Nam",
+      "at": 1778719088414
+    },
+    {
+      "text": "Nộp F47: báo cáo bài viết....",
+      "at": 1778719069298
+    },
+    {
+      "at": 1778718998732,
+      "text": "Phát động F47: báo cáo bài viết...."
+    },
+    {
+      "text": "Triển khai CTĐ-CTCT: [CU] các đơn vị tập trung ôn luyện",
+      "at": 1778715294011
+    },
+    {
+      "at": 1778660374005,
+      "text": "Admin sửa hồ sơ: e141467"
+    },
+    {
+      "at": 1778660183725,
+      "text": "Phân quyền e141467: admin=False level=2"
+    },
+    {
+      "at": 1778660161167,
+      "text": "Admin sửa hồ sơ: e141467"
+    },
+    {
+      "text": "Admin sửa hồ sơ: e141467",
+      "at": 1778660158134
+    },
+    {
+      "at": 1778660118792,
+      "text": "Admin xóa khỏi danh sách: e141-020"
+    },
+    {
+      "text": "Admin xóa khỏi danh sách: e141-018",
+      "at": 1778660113733
+    },
+    {
+      "text": "Admin xóa khỏi danh sách: e141-024",
+      "at": 1778660106562
+    },
+    {
+      "at": 1778660102588,
+      "text": "Admin xóa khỏi danh sách: e141-027"
+    },
+    {
+      "at": 1778658985861,
+      "text": "Triển khai CTĐ-CTCT: [DV] grtrt"
+    },
+    {
+      "text": "Xoá F47: báo cáo",
+      "at": 1778631290807
+    },
+    {
+      "at": 1778631285424,
+      "text": "Xoá F47: sde"
+    },
+    {
+      "at": 1778631277221,
+      "text": "Xoá F47: freg"
+    },
+    {
+      "text": "Tạo báo cáo: Báo cáo nhanh từ app Python",
+      "at": 1778630506548
+    },
+    {
+      "at": 1778629874915,
+      "text": "Nộp F47: freg"
+    },
+    {
+      "at": 1778629753520,
+      "text": "Giục F47 [freg]: Trung sĩ Đặng Quốc Toàn"
+    },
+    {
+      "text": "Giục F47 [freg]: Đại úy Trần Văn Minh",
+      "at": 1778629747620
+    },
+    {
+      "text": "Giục F47 [freg]: Thượng sĩ Phạm Thanh Nam",
+      "at": 1778629744865
+    },
+    {
+      "at": 1778629742032,
+      "text": "Giục F47 [freg]: Hạ sĩ Ngô Đức Quân"
+    },
+    {
+      "at": 1778629739261,
+      "text": "Giục F47 [freg]: Trung úy Lê Quang Tuấn"
+    },
+    {
+      "text": "Giục F47 [freg]: Binh nhất Hoàng Văn Khoa",
+      "at": 1778629736240
+    },
+    {
+      "at": 1778629733582,
+      "text": "Giục F47 [freg]: Bế Ngọc Cường"
+    },
+    {
+      "text": "Giục F47 [freg]: Hạ sĩ Bùi Văn Long",
+      "at": 1778629730902
+    },
+    {
+      "text": "Giục F47 [freg]: Thiếu úy Bùi Quang Thành",
+      "at": 1778629728502
+    },
+    {
+      "at": 1778629712928,
+      "text": "Giục F47 [sde]: Trung sĩ Đặng Quốc Toàn"
+    },
+    {
+      "at": 1778629710305,
+      "text": "Giục F47 [sde]: Thiếu úy Vũ Minh Hoàng"
+    },
+    {
+      "text": "Giục F47 [sde]: Đại úy Trần Văn Minh",
+      "at": 1778629707689
+    },
+    {
+      "at": 1778629704908,
+      "text": "Giục F47 [sde]: Thượng sĩ Phạm Thanh Nam"
+    },
+    {
+      "text": "Phát động F47: freg",
+      "at": 1778629699641
+    },
+    {
+      "text": "Giục F47 [sde]: Trung sĩ Đặng Quốc Toàn",
+      "at": 1778629698260
+    },
+    {
+      "text": "Giục F47 [sde]: Thiếu úy Vũ Minh Hoàng",
+      "at": 1778629695454
+    },
+    {
+      "at": 1778629694565,
+      "text": "Giục F47 [sde]: Trung úy Lê Quang Tuấn"
+    },
+    {
+      "at": 1778629690862,
+      "text": "Giục F47 [sde]: Đại úy Trần Văn Minh"
+    },
+    {
+      "at": 1778629690217,
+      "text": "Giục F47 [sde]: Binh nhất Hoàng Văn Khoa"
+    },
+    {
+      "at": 1778629686033,
+      "text": "Giục F47 [sde]: Thượng sĩ Phạm Thanh Nam"
+    },
+    {
+      "text": "Giục F47 [sde]: Bế Ngọc Cường",
+      "at": 1778629685169
+    },
+    {
+      "at": 1778629683031,
+      "text": "Giục F47 [sde]: Hạ sĩ Ngô Đức Quân"
+    },
+    {
+      "text": "Giục F47 [sde]: Hạ sĩ Ngô Đức Quân",
+      "at": 1778629680691
+    },
+    {
+      "text": "Giục F47 [sde]: Hạ sĩ Bùi Văn Long",
+      "at": 1778629679420
+    },
+    {
+      "text": "Giục F47 [sde]: Binh nhất Hoàng Văn Khoa",
+      "at": 1778629670307
+    },
+    {
+      "at": 1778629667678,
+      "text": "Giục F47 [sde]: Bế Ngọc Cường"
+    },
+    {
+      "at": 1778629664936,
+      "text": "Giục F47 [sde]: Hạ sĩ Bùi Văn Long"
+    },
+    {
+      "text": "Giục F47 [sde]: Thiếu úy Bùi Quang Thành",
+      "at": 1778461069157
+    },
+    {
+      "at": 1778461069142,
+      "text": "Giục F47 [sde]: Binh nhất Hoàng Văn Khoa"
+    },
+    {
+      "at": 1778461007439,
+      "text": "Nộp F47: sde"
+    },
+    {
+      "at": 1778460992801,
+      "text": "Nộp F47: sde"
+    },
+    {
+      "text": "Phát động F47: sde",
+      "at": 1778460967204
+    },
+    {
+      "at": 1778460956484,
+      "text": "Phát động F47: sde"
+    },
+    {
+      "text": "Thêm ca trực qua app Python",
+      "at": 1778370409112
+    },
+    {
+      "text": "Nộp F47: báo cáo",
+      "at": 1778211141915
+    },
+    {
+      "at": 1778211036375,
+      "text": "Giục F47 [báo cáo]: Thiếu tá Nguyễn Văn Hùng"
+    },
+    {
+      "text": "Giục F47 [báo cáo]: Trung úy Lê Quang Tuấn",
+      "at": 1778211035562
+    },
+    {
+      "at": 1778211033514,
+      "text": "Giục F47 [báo cáo]: Binh nhất Hoàng Văn Khoa"
+    },
+    {
+      "at": 1778211031628,
+      "text": "Giục F47 [báo cáo]: Thiếu úy Bùi Quang Thành"
+    },
+    {
+      "at": 1778211027910,
+      "text": "Giục F47 [báo cáo]: Hạ sĩ Bùi Văn Long"
+    },
+    {
+      "text": "Nộp F47: báo cáo",
+      "at": 1778211003348
+    },
+    {
+      "text": "Nộp F47: báo cáo",
+      "at": 1778210995898
+    },
+    {
+      "at": 1778210956553,
+      "text": "Phát động F47: báo cáo"
+    },
+    {
+      "at": 1778197189204,
+      "text": "Tạo báo cáo: Báo cáo nhanh từ app Python"
+    },
+    {
+      "text": "Tạo báo cáo: Báo cáo nhanh từ app Python",
+      "at": 1778197186814
+    },
+    {
+      "at": 1778196975355,
+      "text": "Nộp F47: abc"
+    },
+    {
+      "at": 1778196973520,
+      "text": "Nộp F47: abc"
+    },
+    {
+      "text": "Phát động F47: abc",
+      "at": 1778196911395
+    },
+    {
+      "at": 1778196909115,
+      "text": "Phát động F47: abc"
+    }
+  ],
+  "notifPrefs": {
+    "sound": true,
+    "f47": true,
+    "push": true,
+    "unit": true,
+    "urgent": true
+  },
+  "dailyShares": [],
+  "f47Reminders": {
+    "c_1778460957510::s-lt": {
+      "byName": "admin",
+      "at": 1778629691578,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778718998729::vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2": {
+      "by": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "byName": "Bế Ngọc Cường",
+      "at": 1778719091262
+    },
+    "c_1779107370336::VXsMcYWyEGcCS7Rb2Y3hqYQKlF93": {
+      "byName": "admin",
+      "at": 1779108448398,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778629697355::s-vh": {
+      "byName": "admin",
+      "at": 1778629748276,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1779107370336::pO119VWdHZb82NfyTHGUsMnxPjI3": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779108444233
+    },
+    "c_1778460957510::s-bt": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1778629672303
+    },
+    "c_1779118699287::LUJ6ryWB6OfkofKqiqvjU4FouhL2": {
+      "byName": "admin",
+      "at": 1779118881973,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778460957510::s-nq": {
+      "at": 1778629695454,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778629697355::s-hk": {
+      "at": 1778629734107,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1779118699287::Wa9kZ07GEccQZFb4gAfHLvwy5GW2": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779118884213
+    },
+    "c_1778460957510::s-dt": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1778629710976
+    },
+    "c_1779107370336::vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779108444872
+    },
+    "c_1779107370336::LUJ6ryWB6OfkofKqiqvjU4FouhL2": {
+      "at": 1779108445566,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1779118699287::3MZmicPwpiO6sI8WSMTwQHT8HbP2": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779118882728
+    },
+    "c_1778460957510::s-hk": {
+      "at": 1778629687348,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1779118699287::vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779118881260
+    },
+    "c_1778460957510::CmfOxPa0GWflRY0vQsIid6whuCz1": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "at": 1778629680058,
+      "byName": "admin"
+    },
+    "c_1778629697355::s-tm": {
+      "at": 1778629745565,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778718998729::Wa9kZ07GEccQZFb4gAfHLvwy5GW2": {
+      "byName": "Bế Ngọc Cường",
+      "at": 1778719092017,
+      "by": "CmfOxPa0GWflRY0vQsIid6whuCz1"
+    },
+    "c_1778629697355::s-dt": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "at": 1778629751320,
+      "byName": "admin"
+    },
+    "c_1779107370336::Wa9kZ07GEccQZFb4gAfHLvwy5GW2": {
+      "byName": "admin",
+      "at": 1779108447067,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778629697355::s-lt": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "at": 1778629896851,
+      "byName": "admin"
+    },
+    "c_1778629697355::CmfOxPa0GWflRY0vQsIid6whuCz1": {
+      "at": 1778629731405,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778460957510::s-tm": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "at": 1778629705586,
+      "byName": "admin"
+    },
+    "c_1778460957510::s-vh": {
+      "byName": "admin",
+      "at": 1778629708236,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1779118699287::VLsfV0MzuzeojXhER9RiZWpPla12": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "at": 1779118883478,
+      "byName": "admin"
+    },
+    "c_1779118699287::Mm2o48TsH1Zkz5hvxp8dfkYqd863": {
+      "at": 1779118884926,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778210955851::s-lt": {
+      "at": 1778211031604,
+      "byName": "Bùi Quang Thành",
+      "by": null
+    },
+    "c_1778460957510::s-pn": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "at": 1778629702917,
+      "byName": "admin"
+    },
+    "c_1778629697355::Ko6duZ81BqdQsYhkTjhybkUQjmE3": {
+      "at": 1778629723422,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1779107370336::CmfOxPa0GWflRY0vQsIid6whuCz1": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "at": 1779108442976,
+      "byName": "admin"
+    },
+    "c_1778210955851::s-bt": {
+      "by": null,
+      "at": 1778211028639,
+      "byName": "Bùi Quang Thành"
+    },
+    "c_1778629697355::s-pn": {
+      "at": 1778629742791,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1779118699287::63YYW9PK4ZNMsGUSbY5l6tfLyTx2": {
+      "at": 1779118880040,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1779107370336::Mm2o48TsH1Zkz5hvxp8dfkYqd863": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779108447807
+    },
+    "c_1778629697355::s-nq": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1778629739941
+    },
+    "c_1779107370336::7q6YPfdMbMZi4yKiG8I6lw8wkb32": {
+      "byName": "admin",
+      "at": 1779108443630,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778210955851::s-hk": {
+      "by": null,
+      "byName": "Bùi Quang Thành",
+      "at": 1778211029900
+    },
+    "c_1778629697355::s-bt": {
+      "byName": "admin",
+      "at": 1778629726399,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778460957510::s-bl": {
+      "byName": "admin",
+      "at": 1778461036418,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778210955851::s-nh": {
+      "by": null,
+      "byName": "Bùi Quang Thành",
+      "at": 1778211032357
+    },
+    "c_1779118699287::pO119VWdHZb82NfyTHGUsMnxPjI3": {
+      "at": 1779118880596,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1779118699287::VXsMcYWyEGcCS7Rb2Y3hqYQKlF93": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779118885632
+    },
+    "c_1779118699287::7q6YPfdMbMZi4yKiG8I6lw8wkb32": {
+      "byName": "admin",
+      "at": 1779118879324,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "c_1778629697355::s-bl": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1778629729004
+    },
+    "c_1779107370336::VLsfV0MzuzeojXhER9RiZWpPla12": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779108446237
+    }
+  },
+  "ctdctctTasks": [
+    {
+      "creator": "admin",
+      "creatorRole": "",
+      "followers": [],
+      "createdAt": 1779298636828,
+      "nganhCode": "TH",
+      "attachments": [],
+      "receipts": {},
+      "id": "ct_1779298636828",
+      "members": [
+        "3MZmicPwpiO6sI8WSMTwQHT8HbP2",
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+        "CmfOxPa0GWflRY0vQsIid6whuCz1",
+        "LUJ6ryWB6OfkofKqiqvjU4FouhL2"
+      ],
+      "submissions": {},
+      "scopeUnits": [
+        "Cơ quan Chính Trị",
+        "Đại đội 16",
+        "Đại đội 14",
+        "Tiểu đoàn 9 (Đại đội 9-12)",
+        "Đại đội 15",
+        "Cơ quan Tham mưu",
+        "Cơ quan HC-KT",
+        "Đại đội 18",
+        "Đại đội 24",
+        "Đại đội 25",
+        "Đại đội 20",
+        "Tiểu đoàn 8 (Đại đội 5-8)",
+        "Đại đội 17",
+        "Tiểu đoàn 7 (Đại đội 1-4)"
+      ],
+      "title": "dsqad",
+      "status": "live",
+      "desc": "dsadsad",
+      "nganh": "Tuyên huấn",
+      "taskType": "report",
+      "createdBy": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "deadline": 1779309436828,
+      "scope": "Toàn Trung đoàn"
+    },
+    {
+      "id": "ct_1779119027630",
+      "members": [
+        "3MZmicPwpiO6sI8WSMTwQHT8HbP2",
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+        "CmfOxPa0GWflRY0vQsIid6whuCz1",
+        "LUJ6ryWB6OfkofKqiqvjU4FouhL2"
+      ],
+      "receipts": {
+        "CmfOxPa0GWflRY0vQsIid6whuCz1": {
+          "at": 1779119049312
+        }
+      },
+      "scopeUnits": [
+        "Đại đội 16",
+        "Đại đội 25",
+        "Tiểu đoàn 8 (Đại đội 5-8)",
+        "Cơ quan HC-KT",
+        "Tiểu đoàn 7 (Đại đội 1-4)",
+        "Đại đội 15",
+        "Cơ quan Tham mưu",
+        "Đại đội 18",
+        "Đại đội 24",
+        "Đại đội 14",
+        "Đại đội 20",
+        "Đại đội 17",
+        "Tiểu đoàn 9 (Đại đội 9-12)"
+      ],
+      "submissions": {},
+      "creatorRole": "Trợ lý Dân vận",
+      "followers": [],
+      "creator": "Bế Ngọc Cường",
+      "attachments": [],
+      "createdAt": 1779119027630,
+      "nganhCode": "DV",
+      "deadline": 1779140627630,
+      "nganh": "Dân vận",
+      "taskType": "report",
+      "createdBy": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "desc": "các đồng chí tổng hợp ý kiến báo cáo theo mẫu",
+      "scope": "Đại đội 16, Đại đội 25, Tiểu đoàn 8 (Đại đội 5-8), Cơ quan HC-KT, Tiểu đoàn 7 (Đại đội 1-4), Đại đội 15, Cơ quan Tham mưu, Đại đội 18, Đại đội 24, Đại đội 14, Đại đội 20, Đại đội 17, Tiểu đoàn 9 (Đại đội 9-12)",
+      "status": "live",
+      "title": "tổng hợp ý kiến"
+    }
+  ],
+  "ctdctctReminders": {
+    "ct_1779298636828::LUJ6ryWB6OfkofKqiqvjU4FouhL2": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779298646201
+    },
+    "ct_1779298636828::CmfOxPa0GWflRY0vQsIid6whuCz1": {
+      "at": 1779298646086,
+      "byName": "admin",
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "ct_1779298636828::3MZmicPwpiO6sI8WSMTwQHT8HbP2": {
+      "byName": "admin",
+      "at": 1779298646263,
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3"
+    },
+    "ct_1778759462789::Wa9kZ07GEccQZFb4gAfHLvwy5GW2": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "at": 1778759478869,
+      "byName": "admin"
+    },
+    "ct_1779298636828::63YYW9PK4ZNMsGUSbY5l6tfLyTx2": {
+      "by": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "byName": "admin",
+      "at": 1779298646142
+    }
+  },
+  "hiddenChatRooms": {},
+  "hcqsTasks": [],
+  "scheduleEntries": [],
+  "pttdTasks": [],
+  "guests": [
+    {
+      "guestIdCard": "3453535",
+      "nudgeSenderId": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+      "relationship": "Anh trai",
+      "id": "5214864c9b8f4608bc6c7452e4182785",
+      "members": [
+        {
+          "name": "rtrt",
+          "relationship": "Chị gái"
+        }
+      ],
+      "nudgeStatus": "asked",
+      "vehicle": "motorbike",
+      "createdAt": 1779119126715,
+      "soldierId": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "_id": "5214864c9b8f4608bc6c7452e4182785",
+      "approvalChain": [
+        {
+          "at": 1779119168833,
+          "action": "received",
+          "note": "",
+          "approverUnit": "Chính trị",
+          "approverRole": "Chủ nhiệm Chính trị",
+          "approverId": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+          "approverName": "Hà Văn B"
+        },
+        {
+          "approverUnit": "Chính trị",
+          "approverId": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+          "approverRole": "Chủ nhiệm Chính trị",
+          "approverName": "Hà Văn B",
+          "at": 1779119187668,
+          "action": "forwarded",
+          "note": "xin ý kiến anh"
+        },
+        {
+          "action": "approved",
+          "note": "",
+          "at": 1779119222698,
+          "approverName": "Đỗ Văn B",
+          "approverUnit": "Ban chỉ huy Trung đoàn",
+          "approverId": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+          "approverRole": "Trung đoàn trưởng"
+        },
+        {
+          "at": 1779119247748,
+          "note": "Gửi câu hỏi nhắc nhở: Khách đã về chưa?",
+          "action": "nudge",
+          "approverId": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+          "approverRole": "Trung đoàn trưởng",
+          "approverUnit": "Ban chỉ huy Trung đoàn",
+          "approverName": "Đỗ Văn B"
+        }
+      ],
+      "departureTimeMs": 1779098400000,
+      "_updateTime": "2026-05-18T15:47:29.975414Z",
+      "createdBy": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "currentApproverId": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+      "approverId": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+      "arrivalTimeMs": 1779116400000,
+      "guestCount": 2,
+      "guestName": "đỗ văn m",
+      "status": "approved",
+      "notes": "",
+      "vehicleCount": 2,
+      "nudgeSenderName": "Đỗ Văn B",
+      "feedback": ""
+    },
+    {
+      "relationship": "Bố",
+      "id": "6c10ce1bcacc4d42892ccb69f2eef78f",
+      "members": [
+        {
+          "name": "ffds",
+          "relationship": "Chồng"
+        },
+        {
+          "name": "sdfs",
+          "relationship": "Anh trai"
+        }
+      ],
+      "guestIdCard": "adsd",
+      "vehicle": "car",
+      "createdAt": 1779298773835,
+      "_updateTime": "2026-05-20T10:40:36.674958Z",
+      "departureTimeMs": 1779357600000,
+      "createdBy": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "currentApproverId": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+      "arrivalTimeMs": 1779296400000,
+      "approverId": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+      "guestCount": 3,
+      "soldierId": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "_id": "6c10ce1bcacc4d42892ccb69f2eef78f",
+      "approvalChain": [
+        {
+          "approverName": "Hà Văn B",
+          "approverUnit": "Chính trị",
+          "approverRole": "Chủ nhiệm Chính trị",
+          "approverId": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+          "action": "received",
+          "note": "",
+          "at": 1779298818338
+        },
+        {
+          "approverName": "Hà Văn B",
+          "approverRole": "Chủ nhiệm Chính trị",
+          "approverId": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+          "approverUnit": "Chính trị",
+          "note": "",
+          "action": "forwarded",
+          "at": 1779298835208
+        },
+        {
+          "approverId": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+          "approverRole": "Trung đoàn trưởng",
+          "approverUnit": "Ban chỉ huy Trung đoàn",
+          "approverName": "Đỗ Văn B",
+          "at": 1779298884062,
+          "note": "",
+          "action": "approved"
+        }
+      ],
+      "notes": "",
+      "vehicleCount": 1,
+      "feedback": "",
+      "guestName": "dfesadf",
+      "status": "approved"
+    },
+    {
+      "relationship": "Em trai",
+      "id": "84064af2e8ca4ac798434c6e2c4ba8e2",
+      "members": [
+        {
+          "name": "dsad",
+          "relationship": "Em trai"
+        },
+        {
+          "name": "dsadsa",
+          "relationship": "Em gái"
+        }
+      ],
+      "guestIdCard": "32342342",
+      "vehicle": "car",
+      "createdAt": 1779113904454,
+      "departureTimeMs": 1779098400000,
+      "_updateTime": "2026-05-18T14:47:34.206423Z",
+      "currentApproverId": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+      "createdBy": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "arrivalTimeMs": 1779112800000,
+      "approverId": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+      "guestCount": 3,
+      "soldierId": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "_id": "84064af2e8ca4ac798434c6e2c4ba8e2",
+      "approvalChain": [
+        {
+          "at": 1779113935276,
+          "action": "received",
+          "note": "",
+          "approverUnit": "Chính trị",
+          "approverId": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+          "approverRole": "Chủ nhiệm Chính trị",
+          "approverName": "Hà Văn B"
+        },
+        {
+          "note": "xin ý kiến et",
+          "action": "forwarded",
+          "at": 1779113955526,
+          "approverName": "Hà Văn B",
+          "approverRole": "Chủ nhiệm Chính trị",
+          "approverId": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+          "approverUnit": "Chính trị"
+        },
+        {
+          "at": 1779114010628,
+          "action": "approved",
+          "note": "",
+          "approverUnit": "Ban chỉ huy Trung đoàn",
+          "approverId": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+          "approverRole": "Trung đoàn trưởng",
+          "approverName": "Đỗ Văn B"
+        }
+      ],
+      "notes": "",
+      "feedback": "",
+      "status": "completed",
+      "guestName": "nguyệt thị a"
+    }
+  ],
+  "awards": [],
+  "schedule": [],
+  "chat_messages_group-1779115892693": [],
+  "chat_rooms": [
+    {
+      "pinnedMessageIds": [],
+      "unread": 0,
+      "status": "Trợ lý Dân vận",
+      "name": "Trung úy Bế Ngọc Cường",
+      "type": "dm",
+      "lastAt": 1779298970834,
+      "lastMessage": "bfvjkhgv",
+      "lastReadAt": {
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93": 1779298965328,
+        "CmfOxPa0GWflRY0vQsIid6whuCz1": 1779165591910
+      },
+      "id": "dm-CmfOxPa0GWflRY0vQsIid6whuCz1-VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+      "members": [
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+        "CmfOxPa0GWflRY0vQsIid6whuCz1"
+      ],
+      "unreadByUser": {
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93": 0,
+        "CmfOxPa0GWflRY0vQsIid6whuCz1": 1
+      }
+    },
+    {
+      "type": "dm",
+      "name": "Trung tá Hà Văn B",
+      "status": "Chủ nhiệm Chính trị",
+      "unread": 0,
+      "pinnedMessageIds": [],
+      "lastAt": 1779182608543,
+      "lastReadAt": {
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2": 1779182639460,
+        "CmfOxPa0GWflRY0vQsIid6whuCz1": 1779187719935
+      },
+      "lastMessage": "hhhh",
+      "unreadByUser": {
+        "CmfOxPa0GWflRY0vQsIid6whuCz1": 0,
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2": 0
+      },
+      "id": "dm-63YYW9PK4ZNMsGUSbY5l6tfLyTx2-CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "members": [
+        "CmfOxPa0GWflRY0vQsIid6whuCz1",
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2"
+      ]
+    },
+    {
+      "status": "Chủ nhiệm Hậu cần – Kỹ thuật",
+      "pinnedMessageIds": [],
+      "unread": 0,
+      "type": "dm",
+      "name": "Thiếu úy Hà Văn Nam",
+      "lastAt": 1779118054942,
+      "lastReadAt": {
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93": 1779118055691
+      },
+      "lastMessage": "",
+      "members": [
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+        "vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2"
+      ],
+      "id": "dm-VXsMcYWyEGcCS7Rb2Y3hqYQKlF93-vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2",
+      "unreadByUser": {
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93": 0
+      }
+    },
+    {
+      "lastReadAt": {
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93": 1779118037865
+      },
+      "lastMessage": "dszd",
+      "id": "dm-VXsMcYWyEGcCS7Rb2Y3hqYQKlF93-Wa9kZ07GEccQZFb4gAfHLvwy5GW2",
+      "members": [
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+        "Wa9kZ07GEccQZFb4gAfHLvwy5GW2"
+      ],
+      "unreadByUser": {
+        "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93": 0,
+        "Wa9kZ07GEccQZFb4gAfHLvwy5GW2": 1
+      },
+      "status": "Phó Tham mưu trưởng",
+      "pinnedMessageIds": [],
+      "unread": 0,
+      "type": "dm",
+      "name": "Thiếu úy Ngô Mạnh Tiến",
+      "lastAt": 1779118048487
+    },
+    {
+      "name": "Thiếu úy Ngô Mạnh Tiến",
+      "type": "dm",
+      "pinnedMessageIds": [],
+      "unread": 0,
+      "status": "Phó Tham mưu trưởng",
+      "lastAt": 1778886488596,
+      "lastMessage": "",
+      "lastReadAt": {
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2": 1778886491524
+      },
+      "unreadByUser": {
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2": 0
+      },
+      "id": "dm-63YYW9PK4ZNMsGUSbY5l6tfLyTx2-Wa9kZ07GEccQZFb4gAfHLvwy5GW2",
+      "members": [
+        "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+        "Wa9kZ07GEccQZFb4gAfHLvwy5GW2"
+      ]
+    },
+    {
+      "lastAt": 1778714951328,
+      "status": "Trợ lý",
+      "unread": 0,
+      "pinnedMessageIds": [],
+      "type": "dm",
+      "name": "Thiếu úy Ngô Mạnh Tiến",
+      "id": "dm-Wa9kZ07GEccQZFb4gAfHLvwy5GW2-vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2",
+      "members": [
+        "vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2",
+        "Wa9kZ07GEccQZFb4gAfHLvwy5GW2"
+      ],
+      "unreadByUser": {
+        "vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2": 0,
+        "Wa9kZ07GEccQZFb4gAfHLvwy5GW2": 0
+      },
+      "lastReadAt": {
+        "Wa9kZ07GEccQZFb4gAfHLvwy5GW2": 1778715004914,
+        "vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2": 1778714945274
+      },
+      "lastMessage": "123456"
+    },
+    {
+      "unreadByUser": {
+        "Ko6duZ81BqdQsYhkTjhybkUQjmE3": 0
+      },
+      "members": [
+        "e141001",
+        "s-lt"
+      ],
+      "id": "dm-s-lt",
+      "lastReadAt": {
+        "Ko6duZ81BqdQsYhkTjhybkUQjmE3": 1778370295218
+      },
+      "lastMessage": "",
+      "lastAt": 1778281620905,
+      "type": "dm",
+      "name": "Trung úy Lê Quang Tuấn",
+      "status": "🟢 Đại đội trưởng",
+      "unread": 0,
+      "pinnedMessageIds": []
+    },
+    {
+      "type": "dm",
+      "lastMessage": "",
+      "name": "Đại úy Trần Văn Minh",
+      "status": "🟢 Chính trị viên",
+      "unread": 0,
+      "lastAt": 1778281620905,
+      "members": [
+        "e141001",
+        "s-tm"
+      ],
+      "id": "dm-s-tm"
+    },
+    {
+      "unread": 0,
+      "name": "Đại đội 1",
+      "lastMessage": "",
+      "type": "group",
+      "id": "room-dd1",
+      "members": [
+        "s-lt",
+        "s-bt",
+        "s-pn",
+        "s-bl",
+        "s-hk"
+      ],
+      "lastAt": 1778195645473
+    },
+    {
+      "id": "room-bch",
+      "members": [
+        "s-nh",
+        "s-tm",
+        "s-lt",
+        "s-vh"
+      ],
+      "lastAt": 1778195645473,
+      "unread": 0,
+      "type": "group",
+      "name": "Ban chỉ huy",
+      "lastMessage": ""
+    }
+  ],
+  "soldiers": [
+    {
+      "id": "3MZmicPwpiO6sI8WSMTwQHT8HbP2",
+      "unitId": "u-ct",
+      "unitName": "",
+      "name": "Nguyễn Văn C",
+      "rank": "Trung úy",
+      "role": "Trợ lý Cán bộ",
+      "username": "e141048",
+      "phone": "",
+      "email": "e141048@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": "123456789"
+    },
+    {
+      "id": "63YYW9PK4ZNMsGUSbY5l6tfLyTx2",
+      "unitId": "u-ct",
+      "unitName": "Chính trị",
+      "name": "Hà Văn B",
+      "rank": "Trung tá",
+      "role": "Chủ nhiệm Chính trị",
+      "username": "e141416",
+      "phone": "",
+      "email": "e141416@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 4,
+      "password_plain": ""
+    },
+    {
+      "id": "7q6YPfdMbMZi4yKiG8I6lw8wkb32",
+      "unitId": "u-d7-c3",
+      "unitName": "",
+      "name": "haha",
+      "rank": "Binh nhì",
+      "role": "Chiến sĩ",
+      "username": "e141197",
+      "phone": "",
+      "email": "e141197@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": ""
+    },
+    {
+      "id": "CmfOxPa0GWflRY0vQsIid6whuCz1",
+      "unitId": "u-ct",
+      "unitName": "Chính trị",
+      "name": "Bế Ngọc Cường",
+      "rank": "Trung úy",
+      "role": "Trợ lý Dân vận",
+      "username": "e141467",
+      "phone": "0967523196",
+      "email": "e141467@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 4,
+      "password_plain": ""
+    },
+    {
+      "id": "K4roja84gZQasIz6q6KlU7VTM8X2",
+      "unitId": "u-tm",
+      "unitName": "",
+      "name": "Hà Văn K",
+      "rank": "Thượng úy",
+      "role": "Trợ lý Thông tin",
+      "username": "e141707",
+      "phone": "",
+      "email": "e141707@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": "123456789"
+    },
+    {
+      "id": "Ko6duZ81BqdQsYhkTjhybkUQjmE3",
+      "unitId": "",
+      "unitName": "",
+      "name": "admin",
+      "rank": "",
+      "role": "",
+      "username": "e141001",
+      "phone": "",
+      "email": "e141001@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": true,
+      "adminLevel": 5,
+      "password_plain": ""
+    },
+    {
+      "id": "LUJ6ryWB6OfkofKqiqvjU4FouhL2",
+      "unitId": "u-d7-c1",
+      "unitName": "Đại đội 1",
+      "name": "nguyễn Văn A",
+      "rank": "Thượng úy",
+      "role": "Chính trị viên",
+      "username": "e141736",
+      "phone": "",
+      "email": "e141736@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": ""
+    },
+    {
+      "id": "Mm2o48TsH1Zkz5hvxp8dfkYqd863",
+      "unitId": "u-d7-c1-b1-a1",
+      "unitName": "Tiểu đội 1",
+      "name": "Nông Văn Nam",
+      "rank": "Binh nhất",
+      "role": "Tiểu đội trưởng",
+      "username": "e141530",
+      "phone": "",
+      "email": "e141530@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": ""
+    },
+    {
+      "id": "VLsfV0MzuzeojXhER9RiZWpPla12",
+      "unitId": "u-d9-c10",
+      "unitName": "",
+      "name": "nguyễn Văn Nam",
+      "rank": "Binh nhì",
+      "role": "Chiến sĩ",
+      "username": "e141496",
+      "phone": "",
+      "email": "e141496@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": ""
+    },
+    {
+      "id": "VXsMcYWyEGcCS7Rb2Y3hqYQKlF93",
+      "unitId": "u-bch",
+      "unitName": "Ban chỉ huy Trung đoàn",
+      "name": "Đỗ Văn B",
+      "rank": "Trung tá",
+      "role": "Trung đoàn trưởng",
+      "username": "e141404",
+      "phone": "",
+      "email": "e141404@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 4,
+      "password_plain": ""
+    },
+    {
+      "id": "Wa9kZ07GEccQZFb4gAfHLvwy5GW2",
+      "unitId": "u-tm",
+      "unitName": "Cơ quan Tham mưu",
+      "name": "Ngô Mạnh Tiến",
+      "rank": "Thiếu úy",
+      "role": "Phó Tham mưu trưởng",
+      "username": "e141376",
+      "phone": "",
+      "email": "e141376@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 4,
+      "password_plain": ""
+    },
+    {
+      "id": "gvuutFefK2gsoc26F5wnhkmVg953",
+      "unitId": "u-hk",
+      "unitName": "",
+      "name": "Phạm Văn A",
+      "rank": "Thượng úy",
+      "role": "Trợ lý Doanh trại",
+      "username": "e141890",
+      "phone": "",
+      "email": "e141890@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": "123456789"
+    },
+    {
+      "id": "pO119VWdHZb82NfyTHGUsMnxPjI3",
+      "unitId": "u-d8-c5",
+      "unitName": "",
+      "name": "hà văn Mạnh",
+      "rank": "Thượng úy",
+      "role": "Đại đội trưởng",
+      "username": "e141600",
+      "phone": "",
+      "email": "e141600@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": ""
+    },
+    {
+      "id": "tsSL6eEJxJZ84zWY2DvBc80HhcA2",
+      "unitId": "u-tm",
+      "unitName": "",
+      "name": "Do Van D",
+      "rank": "Thượng úy",
+      "role": "Trợ lý Hành chính",
+      "username": "e141773",
+      "phone": "",
+      "email": "e141773@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": "123456789"
+    },
+    {
+      "id": "vt9fJzjxYSOGcJ0glJ0kaLMOqdJ2",
+      "unitId": "u-hk",
+      "unitName": "Cơ quan HC-KT",
+      "name": "Hà Văn Nam",
+      "rank": "Thiếu úy",
+      "role": "Chủ nhiệm Hậu cần – Kỹ thuật",
+      "username": "e141682",
+      "phone": "",
+      "email": "e141682@ll47.local",
+      "accountStatus": "active",
+      "isAdmin": false,
+      "adminLevel": 1,
+      "password_plain": ""
+    }
+  ],
+  "units": {
+    "commanderId": null,
+    "commanderTitle": "Trung đoàn trưởng",
+    "adminLevel": 5,
+    "id": "root",
+    "children": [
+      {
+        "type": "command",
+        "name": "Ban chỉ huy Trung đoàn",
+        "adminLevel": 4,
+        "commanderTitle": "Trung đoàn trưởng",
+        "commanderId": null,
+        "id": "u-bch",
+        "children": [
+          {
+            "commanderId": null,
+            "commanderTitle": "Trung",
+            "adminLevel": 4,
+            "id": "u-bch-et",
+            "children": [],
+            "type": "assistant",
+            "name": "Trung đoàn trưởng"
+          },
+          {
+            "name": "Chính uỷ",
+            "type": "assistant",
+            "adminLevel": 4,
+            "commanderId": null,
+            "commanderTitle": "Chính",
+            "children": [],
+            "id": "u-bch-cuy"
+          },
+          {
+            "type": "assistant",
+            "name": "Phó Trung đoàn trưởng – Tham mưu trưởng",
+            "id": "u-bch-pet-tmt",
+            "children": [],
+            "commanderId": null,
+            "commanderTitle": "Phó",
+            "adminLevel": 4
+          },
+          {
+            "id": "u-bch-pet",
+            "children": [],
+            "commanderId": null,
+            "commanderTitle": "Phó",
+            "adminLevel": 4,
+            "type": "assistant",
+            "name": "Phó Trung đoàn trưởng"
+          },
+          {
+            "commanderId": null,
+            "commanderTitle": "Phó",
+            "adminLevel": 4,
+            "children": [],
+            "id": "u-bch-pcu",
+            "name": "Phó Chính uỷ",
+            "type": "assistant"
+          }
+        ]
+      },
+      {
+        "type": "department",
+        "name": "Cơ quan Tham mưu",
+        "id": "u-tm",
+        "children": [
+          {
+            "id": "u-tm-ptmt",
+            "children": [],
+            "adminLevel": 4,
+            "commanderTitle": "Phó",
+            "commanderId": null,
+            "type": "assistant",
+            "name": "Phó Tham mưu trưởng"
+          },
+          {
+            "children": [],
+            "id": "u-tm-th",
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "name": "Trợ lý Tác huấn",
+            "type": "assistant"
+          },
+          {
+            "name": "Trợ lý Quân lực",
+            "type": "assistant",
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "children": [],
+            "id": "u-tm-ql"
+          },
+          {
+            "id": "u-tm-cob",
+            "children": [],
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "type": "assistant",
+            "name": "Trợ lý Công binh"
+          },
+          {
+            "name": "Trợ lý Pháo binh",
+            "type": "assistant",
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "adminLevel": 3,
+            "children": [],
+            "id": "u-tm-pb"
+          },
+          {
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "children": [],
+            "id": "u-tm-tt",
+            "name": "Trợ lý Thông tin",
+            "type": "assistant"
+          },
+          {
+            "type": "assistant",
+            "name": "Trợ lý Phòng không",
+            "id": "u-tm-pk",
+            "children": [],
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null
+          },
+          {
+            "type": "assistant",
+            "name": "Trợ lý Trinh sát",
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "adminLevel": 3,
+            "id": "u-tm-ts",
+            "children": []
+          },
+          {
+            "type": "assistant",
+            "name": "Trợ lý Hoá học",
+            "id": "u-tm-hh",
+            "children": [],
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null
+          },
+          {
+            "name": "Trợ lý Tài chính",
+            "type": "assistant",
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "children": [],
+            "id": "u-tm-tc"
+          },
+          {
+            "name": "Trợ lý Hành chính",
+            "type": "assistant",
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "children": [],
+            "id": "u-tm-hc"
+          },
+          {
+            "id": "u-tm-bm",
+            "children": [],
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Nhân",
+            "type": "assistant",
+            "name": "Nhân viên Bảo mật"
+          },
+          {
+            "name": "Nhân viên Cơ yếu",
+            "type": "assistant",
+            "children": [],
+            "id": "u-tm-cy",
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Nhân"
+          },
+          {
+            "name": "Nhân viên Tài chính",
+            "type": "assistant",
+            "adminLevel": 1,
+            "commanderTitle": "Nhân",
+            "commanderId": null,
+            "children": [],
+            "id": "u-tm-nvtc"
+          },
+          {
+            "children": [],
+            "id": "u-tm-nvql",
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Nhân",
+            "name": "Nhân viên Quản lý",
+            "type": "assistant"
+          },
+          {
+            "id": "u-tm-nvql2",
+            "children": [],
+            "adminLevel": 1,
+            "commanderTitle": "Nhân",
+            "commanderId": null,
+            "type": "assistant",
+            "name": "Nhân viên Quân lực"
+          },
+          {
+            "type": "station",
+            "name": "Bếp 35",
+            "id": "u-tm-b35",
+            "children": [
+              {
+                "name": "Quản lý Bếp 35",
+                "type": "assistant",
+                "children": [],
+                "id": "u-tm-b35-ql",
+                "adminLevel": 2,
+                "commanderTitle": "Quản",
+                "commanderId": null
+              },
+              {
+                "children": [],
+                "id": "u-tm-b35-cs",
+                "adminLevel": 1,
+                "commanderTitle": "Chiến",
+                "commanderId": null,
+                "name": "Chiến sĩ Bếp 35",
+                "type": "assistant"
+              }
+            ],
+            "adminLevel": 2,
+            "commanderTitle": "Quản lý Bếp 35",
+            "commanderId": null
+          },
+          {
+            "adminLevel": 2,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "id": "u-tm-vbtd-tdt",
+                "children": [],
+                "adminLevel": 2,
+                "commanderTitle": "Trung",
+                "commanderId": null,
+                "type": "assistant",
+                "name": "Trung đội trưởng Trung đội Vệ binh"
+              },
+              {
+                "children": [],
+                "id": "u-tm-vbtd-cs",
+                "adminLevel": 1,
+                "commanderId": null,
+                "commanderTitle": "Chiến",
+                "name": "Chiến sĩ Trung đội Vệ binh",
+                "type": "assistant"
+              }
+            ],
+            "id": "u-tm-vbtd",
+            "name": "Trung đội Vệ binh",
+            "type": "platoon"
+          }
+        ],
+        "adminLevel": 4,
+        "commanderTitle": "Phó Tham mưu trưởng",
+        "commanderId": null
+      },
+      {
+        "adminLevel": 4,
+        "commanderId": null,
+        "commanderTitle": "Chủ nhiệm Chính trị",
+        "id": "u-ct",
+        "children": [
+          {
+            "name": "Chủ nhiệm Chính trị",
+            "type": "assistant",
+            "commanderId": null,
+            "commanderTitle": "Chủ",
+            "adminLevel": 4,
+            "children": [],
+            "id": "u-ct-cnct"
+          },
+          {
+            "type": "assistant",
+            "name": "Phó Chủ nhiệm Chính trị",
+            "adminLevel": 4,
+            "commanderId": null,
+            "commanderTitle": "Phó",
+            "id": "u-ct-pcnct",
+            "children": []
+          },
+          {
+            "type": "assistant",
+            "name": "Trợ lý Tuyên huấn",
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "adminLevel": 4,
+            "id": "u-ct-th",
+            "children": []
+          },
+          {
+            "children": [],
+            "id": "u-ct-cb",
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "name": "Trợ lý Cán bộ",
+            "type": "assistant"
+          },
+          {
+            "name": "Trợ lý Tổ chức kiêm thống kê",
+            "type": "assistant",
+            "children": [],
+            "id": "u-ct-tc",
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Trợ"
+          },
+          {
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "children": [],
+            "id": "u-ct-qc",
+            "name": "Trợ lý Công tác quần chúng",
+            "type": "assistant"
+          },
+          {
+            "type": "assistant",
+            "name": "Trợ lý Chính sách",
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "id": "u-ct-cs",
+            "children": []
+          },
+          {
+            "children": [],
+            "id": "u-ct-dv",
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "adminLevel": 3,
+            "name": "Trợ lý Dân vận",
+            "type": "assistant"
+          },
+          {
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "adminLevel": 3,
+            "children": [],
+            "id": "u-ct-ba",
+            "name": "Trợ lý Bảo vệ An ninh",
+            "type": "assistant"
+          },
+          {
+            "name": "Phó chủ nhiệm Uỷ ban kiểm tra",
+            "type": "assistant",
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Phó",
+            "children": [],
+            "id": "u-ct-ubkt"
+          },
+          {
+            "name": "Nhân viên Câu lạc bộ",
+            "type": "assistant",
+            "adminLevel": 1,
+            "commanderTitle": "Nhân",
+            "commanderId": null,
+            "children": [],
+            "id": "u-ct-clb"
+          },
+          {
+            "name": "Nhân viên Thống kê",
+            "type": "assistant",
+            "children": [],
+            "id": "u-ct-tk",
+            "adminLevel": 1,
+            "commanderTitle": "Nhân",
+            "commanderId": null
+          },
+          {
+            "commanderId": null,
+            "commanderTitle": "Chiến",
+            "adminLevel": 1,
+            "children": [],
+            "id": "u-ct-csclb",
+            "name": "Chiến sĩ CLB",
+            "type": "assistant"
+          }
+        ],
+        "type": "department",
+        "name": "Cơ quan Chính Trị"
+      },
+      {
+        "type": "department",
+        "name": "Cơ quan HC-KT",
+        "adminLevel": 4,
+        "commanderTitle": "Chủ nhiệm Hậu cần – Kỹ thuật",
+        "commanderId": null,
+        "id": "u-hk",
+        "children": [
+          {
+            "name": "Chủ nhiệm Hậu cần – Kỹ thuật",
+            "type": "assistant",
+            "children": [],
+            "id": "u-hk-cnhckt",
+            "commanderId": null,
+            "commanderTitle": "Chủ",
+            "adminLevel": 4
+          },
+          {
+            "name": "Phó Chủ nhiệm Hậu cần – Kỹ thuật",
+            "type": "assistant",
+            "children": [],
+            "id": "u-hk-pcnhckt",
+            "commanderId": null,
+            "commanderTitle": "Phó",
+            "adminLevel": 4
+          },
+          {
+            "children": [],
+            "id": "u-hk-xm",
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "adminLevel": 3,
+            "name": "Trợ lý Xe máy",
+            "type": "assistant"
+          },
+          {
+            "type": "assistant",
+            "name": "Trợ lý Quân nhu",
+            "id": "u-hk-qn",
+            "children": [],
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null
+          },
+          {
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "children": [],
+            "id": "u-hk-dt",
+            "name": "Trợ lý Doanh trại",
+            "type": "assistant"
+          },
+          {
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "children": [],
+            "id": "u-hk-qk",
+            "name": "Trợ lý Quân khí",
+            "type": "assistant"
+          },
+          {
+            "adminLevel": 1,
+            "commanderTitle": "Nhân",
+            "commanderId": null,
+            "id": "u-hk-nvqn",
+            "children": [],
+            "type": "assistant",
+            "name": "Nhân viên Quân nhu"
+          },
+          {
+            "children": [
+              {
+                "type": "assistant",
+                "name": "Kho trưởng",
+                "id": "u-hk-kqn-kt",
+                "children": [],
+                "commanderId": null,
+                "commanderTitle": "Kho",
+                "adminLevel": 2
+              },
+              {
+                "type": "assistant",
+                "name": "Thủ kho",
+                "id": "u-hk-kqn-tk",
+                "children": [],
+                "adminLevel": 1,
+                "commanderId": null,
+                "commanderTitle": "Thủ"
+              }
+            ],
+            "id": "u-hk-kqn",
+            "commanderId": null,
+            "commanderTitle": "Kho trưởng",
+            "adminLevel": 2,
+            "name": "Kho quân nhu",
+            "type": "station"
+          },
+          {
+            "name": "Kho quân khí",
+            "type": "station",
+            "adminLevel": 2,
+            "commanderTitle": "Kho trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "commanderId": null,
+                "commanderTitle": "Kho",
+                "adminLevel": 2,
+                "id": "u-hk-kqk-kt",
+                "children": [],
+                "type": "assistant",
+                "name": "Kho trưởng"
+              },
+              {
+                "children": [],
+                "id": "u-hk-kqk-tk",
+                "adminLevel": 1,
+                "commanderTitle": "Thủ",
+                "commanderId": null,
+                "name": "Thủ kho",
+                "type": "assistant"
+              }
+            ],
+            "id": "u-hk-kqk"
+          },
+          {
+            "children": [
+              {
+                "adminLevel": 2,
+                "commanderId": null,
+                "commanderTitle": "Trạm",
+                "children": [],
+                "id": "u-hk-tcblt-tt",
+                "name": "Trạm trưởng",
+                "type": "assistant"
+              },
+              {
+                "adminLevel": 1,
+                "commanderTitle": "Nhân",
+                "commanderId": null,
+                "id": "u-hk-tcblt-nv",
+                "children": [],
+                "type": "assistant",
+                "name": "Nhân viên nấu ăn"
+              }
+            ],
+            "id": "u-hk-tcblt",
+            "commanderId": null,
+            "commanderTitle": "Trạm trưởng",
+            "adminLevel": 2,
+            "name": "Trạm chế biến lương thực",
+            "type": "station"
+          }
+        ]
+      },
+      {
+        "adminLevel": 3,
+        "commanderTitle": "Đại đội trưởng",
+        "commanderId": null,
+        "id": "u-c14",
+        "children": [
+          {
+            "name": "Phó Đại đội trưởng",
+            "type": "assistant",
+            "abbr": "PĐĐT",
+            "commanderTitle": "Phó Đại đội trưởng",
+            "commanderId": null,
+            "adminLevel": 2,
+            "children": [],
+            "id": "u-c14-pdt"
+          },
+          {
+            "abbr": "CTV",
+            "type": "assistant",
+            "name": "Chính trị viên Đại đội",
+            "id": "u-c14-ctv",
+            "children": [],
+            "commanderId": null,
+            "adminLevel": 2,
+            "commanderTitle": "Chính trị viên"
+          },
+          {
+            "children": [],
+            "id": "u-c14-ctvp",
+            "commanderTitle": "Chính trị viên phó",
+            "commanderId": null,
+            "adminLevel": 2,
+            "abbr": "CTVP",
+            "name": "Chính trị viên phó Đại đội",
+            "type": "assistant"
+          },
+          {
+            "id": "u-c14-b1",
+            "children": [
+              {
+                "id": "u-c14-b1-a1",
+                "children": [],
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "name": "Tiểu đội 2",
+                "type": "squad",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c14-b1-a2"
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 3",
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "id": "u-c14-b1-a3",
+                "children": []
+              }
+            ],
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "type": "platoon",
+            "name": "Trung đội 1"
+          },
+          {
+            "type": "platoon",
+            "name": "Trung đội 2",
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "id": "u-c14-b2",
+            "children": [
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c14-b2-a1",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 2",
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c14-b2-a2",
+                "children": []
+              },
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c14-b2-a3",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 3"
+              }
+            ]
+          },
+          {
+            "id": "u-c14-b3",
+            "children": [
+              {
+                "children": [],
+                "id": "u-c14-b3-a1",
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "name": "Tiểu đội 1",
+                "type": "squad"
+              },
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c14-b3-a2",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 2"
+              },
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c14-b3-a3",
+                "name": "Tiểu đội 3",
+                "type": "squad"
+              }
+            ],
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "type": "platoon",
+            "name": "Trung đội 3"
+          }
+        ],
+        "type": "company",
+        "name": "Đại đội 14"
+      },
+      {
+        "type": "company",
+        "name": "Đại đội 15",
+        "commanderId": null,
+        "commanderTitle": "Đại đội trưởng",
+        "adminLevel": 3,
+        "id": "u-c15",
+        "children": [
+          {
+            "id": "u-c15-pdt",
+            "children": [],
+            "commanderTitle": "Phó Đại đội trưởng",
+            "commanderId": null,
+            "adminLevel": 2,
+            "abbr": "PĐĐT",
+            "type": "assistant",
+            "name": "Phó Đại đội trưởng"
+          },
+          {
+            "abbr": "CTV",
+            "name": "Chính trị viên Đại đội",
+            "type": "assistant",
+            "children": [],
+            "id": "u-c15-ctv",
+            "commanderId": null,
+            "adminLevel": 2,
+            "commanderTitle": "Chính trị viên"
+          },
+          {
+            "abbr": "CTVP",
+            "name": "Chính trị viên phó Đại đội",
+            "type": "assistant",
+            "children": [],
+            "id": "u-c15-ctvp",
+            "commanderTitle": "Chính trị viên phó",
+            "commanderId": null,
+            "adminLevel": 2
+          },
+          {
+            "children": [
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c15-b1-a1",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 2",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c15-b1-a2",
+                "children": []
+              },
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c15-b1-a3",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 3"
+              }
+            ],
+            "id": "u-c15-b1",
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "name": "Trung đội 1",
+            "type": "platoon"
+          },
+          {
+            "name": "Trung đội 2",
+            "type": "platoon",
+            "children": [
+              {
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "id": "u-c15-b2-a1",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "id": "u-c15-b2-a2",
+                "children": [],
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "type": "squad",
+                "name": "Tiểu đội 2"
+              },
+              {
+                "children": [],
+                "id": "u-c15-b2-a3",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "name": "Tiểu đội 3",
+                "type": "squad"
+              }
+            ],
+            "id": "u-c15-b2",
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null
+          },
+          {
+            "children": [
+              {
+                "id": "u-c15-b3-a1",
+                "children": [],
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 2",
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c15-b3-a2",
+                "children": []
+              },
+              {
+                "children": [],
+                "id": "u-c15-b3-a3",
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "name": "Tiểu đội 3",
+                "type": "squad"
+              }
+            ],
+            "id": "u-c15-b3",
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "adminLevel": 1,
+            "name": "Trung đội 3",
+            "type": "platoon"
+          }
+        ]
+      },
+      {
+        "adminLevel": 3,
+        "commanderId": null,
+        "commanderTitle": "Đại đội trưởng",
+        "id": "u-c16",
+        "children": [
+          {
+            "children": [],
+            "id": "u-c16-pdt",
+            "commanderTitle": "Phó Đại đội trưởng",
+            "commanderId": null,
+            "adminLevel": 2,
+            "abbr": "PĐĐT",
+            "name": "Phó Đại đội trưởng",
+            "type": "assistant"
+          },
+          {
+            "children": [],
+            "id": "u-c16-ctv",
+            "commanderTitle": "Chính trị viên",
+            "commanderId": null,
+            "adminLevel": 2,
+            "abbr": "CTV",
+            "name": "Chính trị viên Đại đội",
+            "type": "assistant"
+          },
+          {
+            "type": "assistant",
+            "name": "Chính trị viên phó Đại đội",
+            "abbr": "CTVP",
+            "commanderId": null,
+            "adminLevel": 2,
+            "commanderTitle": "Chính trị viên phó",
+            "id": "u-c16-ctvp",
+            "children": []
+          },
+          {
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "id": "u-c16-b1",
+            "children": [
+              {
+                "id": "u-c16-b1-a1",
+                "children": [],
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c16-b1-a2",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 2"
+              },
+              {
+                "name": "Tiểu đội 3",
+                "type": "squad",
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "children": [],
+                "id": "u-c16-b1-a3"
+              }
+            ],
+            "type": "platoon",
+            "name": "Trung đội 1"
+          },
+          {
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "id": "u-c16-b2",
+            "children": [
+              {
+                "type": "squad",
+                "name": "Tiểu đội 1",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c16-b2-a1",
+                "children": []
+              },
+              {
+                "children": [],
+                "id": "u-c16-b2-a2",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "name": "Tiểu đội 2",
+                "type": "squad"
+              },
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c16-b2-a3",
+                "name": "Tiểu đội 3",
+                "type": "squad"
+              }
+            ],
+            "type": "platoon",
+            "name": "Trung đội 2"
+          },
+          {
+            "type": "platoon",
+            "name": "Trung đội 3",
+            "id": "u-c16-b3",
+            "children": [
+              {
+                "name": "Tiểu đội 1",
+                "type": "squad",
+                "children": [],
+                "id": "u-c16-b3-a1",
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0
+              },
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c16-b3-a2",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 2"
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 3",
+                "id": "u-c16-b3-a3",
+                "children": [],
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null
+              }
+            ],
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "adminLevel": 1
+          }
+        ],
+        "type": "company",
+        "name": "Đại đội 16"
+      },
+      {
+        "name": "Đại đội 17",
+        "type": "company",
+        "adminLevel": 3,
+        "commanderId": null,
+        "commanderTitle": "Đại đội trưởng",
+        "children": [
+          {
+            "abbr": "PĐĐT",
+            "type": "assistant",
+            "name": "Phó Đại đội trưởng",
+            "id": "u-c17-pdt",
+            "children": [],
+            "commanderTitle": "Phó Đại đội trưởng",
+            "adminLevel": 2,
+            "commanderId": null
+          },
+          {
+            "commanderTitle": "Chính trị viên",
+            "adminLevel": 2,
+            "commanderId": null,
+            "children": [],
+            "id": "u-c17-ctv",
+            "name": "Chính trị viên Đại đội",
+            "type": "assistant",
+            "abbr": "CTV"
+          },
+          {
+            "children": [],
+            "id": "u-c17-ctvp",
+            "commanderId": null,
+            "adminLevel": 2,
+            "commanderTitle": "Chính trị viên phó",
+            "abbr": "CTVP",
+            "name": "Chính trị viên phó Đại đội",
+            "type": "assistant"
+          },
+          {
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "adminLevel": 1,
+            "id": "u-c17-b1",
+            "children": [
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "children": [],
+                "id": "u-c17-b1-a1",
+                "name": "Tiểu đội 1",
+                "type": "squad"
+              },
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c17-b1-a2",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 2"
+              },
+              {
+                "name": "Tiểu đội 3",
+                "type": "squad",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c17-b1-a3"
+              }
+            ],
+            "type": "platoon",
+            "name": "Trung đội 1"
+          },
+          {
+            "children": [
+              {
+                "name": "Tiểu đội 1",
+                "type": "squad",
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "children": [],
+                "id": "u-c17-b2-a1"
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 2",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c17-b2-a2",
+                "children": []
+              },
+              {
+                "name": "Tiểu đội 3",
+                "type": "squad",
+                "children": [],
+                "id": "u-c17-b2-a3",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null
+              }
+            ],
+            "id": "u-c17-b2",
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "name": "Trung đội 2",
+            "type": "platoon"
+          },
+          {
+            "name": "Trung đội 3",
+            "type": "platoon",
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "type": "squad",
+                "name": "Tiểu đội 1",
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c17-b3-a1",
+                "children": []
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 2",
+                "id": "u-c17-b3-a2",
+                "children": [],
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 3",
+                "id": "u-c17-b3-a3",
+                "children": [],
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0
+              }
+            ],
+            "id": "u-c17-b3"
+          }
+        ],
+        "id": "u-c17"
+      },
+      {
+        "name": "Đại đội 18",
+        "type": "company",
+        "children": [
+          {
+            "abbr": "PĐĐT",
+            "name": "Phó Đại đội trưởng",
+            "type": "assistant",
+            "children": [],
+            "id": "u-c18-pdt",
+            "commanderTitle": "Phó Đại đội trưởng",
+            "adminLevel": 2,
+            "commanderId": null
+          },
+          {
+            "commanderTitle": "Chính trị viên",
+            "adminLevel": 2,
+            "commanderId": null,
+            "id": "u-c18-ctv",
+            "children": [],
+            "type": "assistant",
+            "name": "Chính trị viên Đại đội",
+            "abbr": "CTV"
+          },
+          {
+            "type": "assistant",
+            "name": "Chính trị viên phó Đại đội",
+            "abbr": "CTVP",
+            "commanderId": null,
+            "adminLevel": 2,
+            "commanderTitle": "Chính trị viên phó",
+            "id": "u-c18-ctvp",
+            "children": []
+          },
+          {
+            "type": "platoon",
+            "name": "Trung đội 1",
+            "id": "u-c18-b1",
+            "children": [
+              {
+                "type": "squad",
+                "name": "Tiểu đội 1",
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "id": "u-c18-b1-a1",
+                "children": []
+              },
+              {
+                "name": "Tiểu đội 2",
+                "type": "squad",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c18-b1-a2"
+              },
+              {
+                "name": "Tiểu đội 3",
+                "type": "squad",
+                "children": [],
+                "id": "u-c18-b1-a3",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null
+              }
+            ],
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "adminLevel": 1
+          },
+          {
+            "name": "Trung đội 2",
+            "type": "platoon",
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "children": [
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c18-b2-a1",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "children": [],
+                "id": "u-c18-b2-a2",
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "name": "Tiểu đội 2",
+                "type": "squad"
+              },
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c18-b2-a3",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 3"
+              }
+            ],
+            "id": "u-c18-b2"
+          },
+          {
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "type": "squad",
+                "name": "Tiểu đội 1",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c18-b3-a1",
+                "children": []
+              },
+              {
+                "name": "Tiểu đội 2",
+                "type": "squad",
+                "children": [],
+                "id": "u-c18-b3-a2",
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0
+              },
+              {
+                "name": "Tiểu đội 3",
+                "type": "squad",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c18-b3-a3"
+              }
+            ],
+            "id": "u-c18-b3",
+            "name": "Trung đội 3",
+            "type": "platoon"
+          }
+        ],
+        "id": "u-c18",
+        "adminLevel": 3,
+        "commanderTitle": "Đại đội trưởng",
+        "commanderId": null
+      },
+      {
+        "commanderId": null,
+        "commanderTitle": "Đại đội trưởng",
+        "adminLevel": 3,
+        "children": [
+          {
+            "name": "Phó Đại đội trưởng",
+            "type": "assistant",
+            "abbr": "PĐĐT",
+            "commanderTitle": "Phó Đại đội trưởng",
+            "adminLevel": 2,
+            "commanderId": null,
+            "children": [],
+            "id": "u-c20-pdt"
+          },
+          {
+            "children": [],
+            "id": "u-c20-ctv",
+            "commanderId": null,
+            "adminLevel": 2,
+            "commanderTitle": "Chính trị viên",
+            "abbr": "CTV",
+            "name": "Chính trị viên Đại đội",
+            "type": "assistant"
+          },
+          {
+            "commanderTitle": "Chính trị viên phó",
+            "adminLevel": 2,
+            "commanderId": null,
+            "children": [],
+            "id": "u-c20-ctvp",
+            "name": "Chính trị viên phó Đại đội",
+            "type": "assistant",
+            "abbr": "CTVP"
+          },
+          {
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "adminLevel": 1,
+            "id": "u-c20-b1",
+            "children": [
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c20-b1-a1",
+                "name": "Tiểu đội 1",
+                "type": "squad"
+              },
+              {
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "id": "u-c20-b1-a2",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 2"
+              },
+              {
+                "id": "u-c20-b1-a3",
+                "children": [],
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "type": "squad",
+                "name": "Tiểu đội 3"
+              }
+            ],
+            "type": "platoon",
+            "name": "Trung đội 1"
+          },
+          {
+            "name": "Trung đội 2",
+            "type": "platoon",
+            "children": [
+              {
+                "id": "u-c20-b2-a1",
+                "children": [],
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c20-b2-a2",
+                "name": "Tiểu đội 2",
+                "type": "squad"
+              },
+              {
+                "name": "Tiểu đội 3",
+                "type": "squad",
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "children": [],
+                "id": "u-c20-b2-a3"
+              }
+            ],
+            "id": "u-c20-b2",
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null
+          },
+          {
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c20-b3-a1",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "children": [],
+                "id": "u-c20-b3-a2",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "name": "Tiểu đội 2",
+                "type": "squad"
+              },
+              {
+                "children": [],
+                "id": "u-c20-b3-a3",
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "name": "Tiểu đội 3",
+                "type": "squad"
+              }
+            ],
+            "id": "u-c20-b3",
+            "name": "Trung đội 3",
+            "type": "platoon"
+          }
+        ],
+        "id": "u-c20",
+        "name": "Đại đội 20",
+        "type": "company"
+      },
+      {
+        "adminLevel": 3,
+        "commanderTitle": "Đại đội trưởng",
+        "commanderId": null,
+        "id": "u-c24",
+        "children": [
+          {
+            "abbr": "PĐĐT",
+            "name": "Phó Đại đội trưởng",
+            "type": "assistant",
+            "children": [],
+            "id": "u-c24-pdt",
+            "commanderTitle": "Phó Đại đội trưởng",
+            "commanderId": null,
+            "adminLevel": 2
+          },
+          {
+            "name": "Chính trị viên Đại đội",
+            "type": "assistant",
+            "abbr": "CTV",
+            "commanderTitle": "Chính trị viên",
+            "commanderId": null,
+            "adminLevel": 2,
+            "children": [],
+            "id": "u-c24-ctv"
+          },
+          {
+            "name": "Chính trị viên phó Đại đội",
+            "type": "assistant",
+            "abbr": "CTVP",
+            "commanderTitle": "Chính trị viên phó",
+            "commanderId": null,
+            "adminLevel": 2,
+            "children": [],
+            "id": "u-c24-ctvp"
+          },
+          {
+            "children": [
+              {
+                "name": "Tiểu đội 1",
+                "type": "squad",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c24-b1-a1"
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 2",
+                "id": "u-c24-b1-a2",
+                "children": [],
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0
+              },
+              {
+                "name": "Tiểu đội 3",
+                "type": "squad",
+                "children": [],
+                "id": "u-c24-b1-a3",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null
+              }
+            ],
+            "id": "u-c24-b1",
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "adminLevel": 1,
+            "name": "Trung đội 1",
+            "type": "platoon"
+          },
+          {
+            "name": "Trung đội 2",
+            "type": "platoon",
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "type": "squad",
+                "name": "Tiểu đội 1",
+                "id": "u-c24-b2-a1",
+                "children": [],
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null
+              },
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "children": [],
+                "id": "u-c24-b2-a2",
+                "name": "Tiểu đội 2",
+                "type": "squad"
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 3",
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "id": "u-c24-b2-a3",
+                "children": []
+              }
+            ],
+            "id": "u-c24-b2"
+          },
+          {
+            "name": "Trung đội 3",
+            "type": "platoon",
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "type": "squad",
+                "name": "Tiểu đội 1",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c24-b3-a1",
+                "children": []
+              },
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "children": [],
+                "id": "u-c24-b3-a2",
+                "name": "Tiểu đội 2",
+                "type": "squad"
+              },
+              {
+                "type": "squad",
+                "name": "Tiểu đội 3",
+                "id": "u-c24-b3-a3",
+                "children": [],
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0
+              }
+            ],
+            "id": "u-c24-b3"
+          }
+        ],
+        "type": "company",
+        "name": "Đại đội 24"
+      },
+      {
+        "children": [
+          {
+            "id": "u-c25-pdt",
+            "children": [],
+            "commanderTitle": "Phó Đại đội trưởng",
+            "commanderId": null,
+            "adminLevel": 2,
+            "abbr": "PĐĐT",
+            "type": "assistant",
+            "name": "Phó Đại đội trưởng"
+          },
+          {
+            "children": [],
+            "id": "u-c25-ctv",
+            "commanderId": null,
+            "adminLevel": 2,
+            "commanderTitle": "Chính trị viên",
+            "abbr": "CTV",
+            "name": "Chính trị viên Đại đội",
+            "type": "assistant"
+          },
+          {
+            "children": [],
+            "id": "u-c25-ctvp",
+            "commanderTitle": "Chính trị viên phó",
+            "commanderId": null,
+            "adminLevel": 2,
+            "abbr": "CTVP",
+            "name": "Chính trị viên phó Đại đội",
+            "type": "assistant"
+          },
+          {
+            "name": "Trung đội 1",
+            "type": "platoon",
+            "children": [
+              {
+                "id": "u-c25-b1-a1",
+                "children": [],
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "type": "squad",
+                "name": "Tiểu đội 1"
+              },
+              {
+                "id": "u-c25-b1-a2",
+                "children": [],
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "type": "squad",
+                "name": "Tiểu đội 2"
+              },
+              {
+                "name": "Tiểu đội 3",
+                "type": "squad",
+                "children": [],
+                "id": "u-c25-b1-a3",
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng"
+              }
+            ],
+            "id": "u-c25-b1",
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "adminLevel": 1
+          },
+          {
+            "children": [
+              {
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "adminLevel": 0,
+                "children": [],
+                "id": "u-c25-b2-a1",
+                "name": "Tiểu đội 1",
+                "type": "squad"
+              },
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "id": "u-c25-b2-a2",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 2"
+              },
+              {
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "id": "u-c25-b2-a3",
+                "children": [],
+                "type": "squad",
+                "name": "Tiểu đội 3"
+              }
+            ],
+            "id": "u-c25-b2",
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "name": "Trung đội 2",
+            "type": "platoon"
+          },
+          {
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "id": "u-c25-b3",
+            "children": [
+              {
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng",
+                "children": [],
+                "id": "u-c25-b3-a1",
+                "name": "Tiểu đội 1",
+                "type": "squad"
+              },
+              {
+                "children": [],
+                "id": "u-c25-b3-a2",
+                "adminLevel": 0,
+                "commanderTitle": "Tiểu đội trưởng",
+                "commanderId": null,
+                "name": "Tiểu đội 2",
+                "type": "squad"
+              },
+              {
+                "name": "Tiểu đội 3",
+                "type": "squad",
+                "children": [],
+                "id": "u-c25-b3-a3",
+                "adminLevel": 0,
+                "commanderId": null,
+                "commanderTitle": "Tiểu đội trưởng"
+              }
+            ],
+            "type": "platoon",
+            "name": "Trung đội 3"
+          }
+        ],
+        "id": "u-c25",
+        "adminLevel": 3,
+        "commanderTitle": "Đại đội trưởng",
+        "commanderId": null,
+        "name": "Đại đội 25",
+        "type": "company"
+      },
+      {
+        "id": "u-d7",
+        "children": [
+          {
+            "adminLevel": 4,
+            "commanderTitle": "Tiểu đoàn trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "adminLevel": 4,
+                "commanderTitle": "Tiểu",
+                "commanderId": null,
+                "id": "u-d7-dt",
+                "children": [],
+                "type": "assistant",
+                "name": "Tiểu đoàn trưởng"
+              },
+              {
+                "type": "assistant",
+                "name": "Chính trị viên Tiểu đoàn",
+                "adminLevel": 3,
+                "commanderId": null,
+                "commanderTitle": "Chính",
+                "id": "u-d7-ctv",
+                "children": []
+              },
+              {
+                "name": "Phó Tiểu đoàn trưởng",
+                "type": "assistant",
+                "children": [],
+                "id": "u-d7-pdt",
+                "adminLevel": 3,
+                "commanderTitle": "Phó",
+                "commanderId": null
+              },
+              {
+                "type": "assistant",
+                "name": "Chính trị viên phó Tiểu đoàn",
+                "adminLevel": 3,
+                "commanderId": null,
+                "commanderTitle": "Chính",
+                "id": "u-d7-ctvp",
+                "children": []
+              }
+            ],
+            "id": "u-d7-bch",
+            "name": "Ban chỉ huy Tiểu đoàn 7",
+            "type": "command"
+          },
+          {
+            "children": [],
+            "id": "u-d7-tltm",
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "name": "Trợ lý Tham mưu",
+            "type": "assistant"
+          },
+          {
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "children": [],
+            "id": "u-d7-tlhc",
+            "name": "Trợ lý Hậu cần",
+            "type": "assistant"
+          },
+          {
+            "children": [],
+            "id": "u-d7-nvqy",
+            "adminLevel": 1,
+            "commanderTitle": "Nhân",
+            "commanderId": null,
+            "name": "Nhân viên Quân y",
+            "type": "assistant"
+          },
+          {
+            "children": [],
+            "id": "u-d7-nvqn",
+            "adminLevel": 1,
+            "commanderTitle": "Nhân",
+            "commanderId": null,
+            "name": "Nhân viên Quân nhu",
+            "type": "assistant"
+          },
+          {
+            "commanderId": null,
+            "commanderTitle": "Nhân",
+            "adminLevel": 1,
+            "children": [],
+            "id": "u-d7-nvqk",
+            "name": "Nhân viên Quân khí",
+            "type": "assistant"
+          },
+          {
+            "type": "company",
+            "name": "Đại đội 1",
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Đại đội trưởng",
+            "id": "u-d7-c1",
+            "children": [
+              {
+                "commanderTitle": "Phó Đại đội trưởng",
+                "commanderId": null,
+                "adminLevel": 2,
+                "children": [],
+                "id": "u-d7-c1-pdt",
+                "name": "Phó Đại đội trưởng",
+                "type": "assistant",
+                "abbr": "PĐĐT"
+              },
+              {
+                "commanderTitle": "Chính trị viên",
+                "commanderId": null,
+                "adminLevel": 2,
+                "id": "u-d7-c1-ctv",
+                "children": [],
+                "type": "assistant",
+                "name": "Chính trị viên Đại đội",
+                "abbr": "CTV"
+              },
+              {
+                "abbr": "CTVP",
+                "name": "Chính trị viên phó Đại đội",
+                "type": "assistant",
+                "children": [],
+                "id": "u-d7-c1-ctvp",
+                "commanderId": null,
+                "adminLevel": 2,
+                "commanderTitle": "Chính trị viên phó"
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 1",
+                "id": "u-d7-c1-b1",
+                "children": [
+                  {
+                    "children": [],
+                    "id": "u-d7-c1-b1-a1",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 2",
+                    "id": "u-d7-c1-b1-a2",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d7-c1-b1-a3",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ],
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null
+              },
+              {
+                "children": [
+                  {
+                    "id": "u-d7-c1-b2-a1",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "id": "u-d7-c1-b2-a2",
+                    "children": [],
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d7-c1-b2-a3",
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "id": "u-d7-c1-b2",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "name": "Trung đội 2",
+                "type": "platoon"
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 3",
+                "id": "u-d7-c1-b3",
+                "children": [
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 1",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d7-c1-b3-a1",
+                    "children": []
+                  },
+                  {
+                    "name": "Tiểu đội 2",
+                    "type": "squad",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "children": [],
+                    "id": "u-d7-c1-b3-a2"
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d7-c1-b3-a3"
+                  }
+                ],
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null
+              }
+            ]
+          },
+          {
+            "type": "company",
+            "name": "Đại đội 2",
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Đại đội trưởng",
+            "id": "u-d7-c2",
+            "children": [
+              {
+                "children": [],
+                "id": "u-d7-c2-pdt",
+                "commanderTitle": "Phó Đại đội trưởng",
+                "commanderId": null,
+                "adminLevel": 2,
+                "abbr": "PĐĐT",
+                "name": "Phó Đại đội trưởng",
+                "type": "assistant"
+              },
+              {
+                "id": "u-d7-c2-ctv",
+                "children": [],
+                "commanderTitle": "Chính trị viên",
+                "adminLevel": 2,
+                "commanderId": null,
+                "abbr": "CTV",
+                "type": "assistant",
+                "name": "Chính trị viên Đại đội"
+              },
+              {
+                "abbr": "CTVP",
+                "name": "Chính trị viên phó Đại đội",
+                "type": "assistant",
+                "children": [],
+                "id": "u-d7-c2-ctvp",
+                "commanderTitle": "Chính trị viên phó",
+                "adminLevel": 2,
+                "commanderId": null
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 1",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "id": "u-d7-c2-b1",
+                "children": [
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 1",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "id": "u-d7-c2-b1-a1",
+                    "children": []
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 2",
+                    "id": "u-d7-c2-b1-a2",
+                    "children": [],
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0
+                  },
+                  {
+                    "id": "u-d7-c2-b1-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ]
+              },
+              {
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "children": [
+                  {
+                    "id": "u-d7-c2-b2-a1",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d7-c2-b2-a2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d7-c2-b2-a3",
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "id": "u-d7-c2-b2",
+                "name": "Trung đội 2",
+                "type": "platoon"
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 3",
+                "id": "u-d7-c2-b3",
+                "children": [
+                  {
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "id": "u-d7-c2-b3-a1",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d7-c2-b3-a2",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d7-c2-b3-a3",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "adminLevel": 1,
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "abbr": "PĐĐT",
+                "type": "assistant",
+                "name": "Phó Đại đội trưởng",
+                "id": "u-d7-c3-pdt",
+                "children": [],
+                "commanderTitle": "Phó Đại đội trưởng",
+                "adminLevel": 2,
+                "commanderId": null
+              },
+              {
+                "id": "u-d7-c3-ctv",
+                "children": [],
+                "commanderTitle": "Chính trị viên",
+                "commanderId": null,
+                "adminLevel": 2,
+                "abbr": "CTV",
+                "type": "assistant",
+                "name": "Chính trị viên Đại đội"
+              },
+              {
+                "children": [],
+                "id": "u-d7-c3-ctvp",
+                "commanderTitle": "Chính trị viên phó",
+                "adminLevel": 2,
+                "commanderId": null,
+                "abbr": "CTVP",
+                "name": "Chính trị viên phó Đại đội",
+                "type": "assistant"
+              },
+              {
+                "name": "Trung đội 1",
+                "type": "platoon",
+                "children": [
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 1",
+                    "id": "u-d7-c3-b1-a1",
+                    "children": [],
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0
+                  },
+                  {
+                    "id": "u-d7-c3-b1-a2",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "id": "u-d7-c3-b1-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ],
+                "id": "u-d7-c3-b1",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null
+              },
+              {
+                "name": "Trung đội 2",
+                "type": "platoon",
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "children": [],
+                    "id": "u-d7-c3-b2-a1"
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 2",
+                    "id": "u-d7-c3-b2-a2",
+                    "children": [],
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d7-c3-b2-a3",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "id": "u-d7-c3-b2",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null
+              },
+              {
+                "id": "u-d7-c3-b3",
+                "children": [
+                  {
+                    "children": [],
+                    "id": "u-d7-c3-b3-a1",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "id": "u-d7-c3-b3-a2",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d7-c3-b3-a3",
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng"
+                  }
+                ],
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "adminLevel": 1,
+                "type": "platoon",
+                "name": "Trung đội 3"
+              }
+            ],
+            "id": "u-d7-c3",
+            "commanderId": null,
+            "commanderTitle": "Đại đội trưởng",
+            "adminLevel": 3,
+            "name": "Đại đội 3",
+            "type": "company"
+          },
+          {
+            "name": "Đại đội 4",
+            "type": "company",
+            "children": [
+              {
+                "id": "u-d7-c4-pdt",
+                "children": [],
+                "commanderTitle": "Phó Đại đội trưởng",
+                "adminLevel": 2,
+                "commanderId": null,
+                "abbr": "PĐĐT",
+                "type": "assistant",
+                "name": "Phó Đại đội trưởng"
+              },
+              {
+                "abbr": "CTV",
+                "type": "assistant",
+                "name": "Chính trị viên Đại đội",
+                "id": "u-d7-c4-ctv",
+                "children": [],
+                "commanderTitle": "Chính trị viên",
+                "commanderId": null,
+                "adminLevel": 2
+              },
+              {
+                "name": "Chính trị viên phó Đại đội",
+                "type": "assistant",
+                "abbr": "CTVP",
+                "commanderTitle": "Chính trị viên phó",
+                "commanderId": null,
+                "adminLevel": 2,
+                "children": [],
+                "id": "u-d7-c4-ctvp"
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 1",
+                "id": "u-d7-c4-b1",
+                "children": [
+                  {
+                    "children": [],
+                    "id": "u-d7-c4-b1-a1",
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "name": "Tiểu đội 2",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d7-c4-b1-a2",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 3",
+                    "id": "u-d7-c4-b1-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  }
+                ],
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null
+              },
+              {
+                "name": "Trung đội 2",
+                "type": "platoon",
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "children": [],
+                    "id": "u-d7-c4-b2-a1"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d7-c4-b2-a2",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 3",
+                    "id": "u-d7-c4-b2-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  }
+                ],
+                "id": "u-d7-c4-b2",
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "adminLevel": 1
+              },
+              {
+                "name": "Trung đội 3",
+                "type": "platoon",
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d7-c4-b3-a1",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d7-c4-b3-a2",
+                    "children": []
+                  },
+                  {
+                    "id": "u-d7-c4-b3-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ],
+                "id": "u-d7-c4-b3",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null
+              }
+            ],
+            "id": "u-d7-c4",
+            "adminLevel": 3,
+            "commanderTitle": "Đại đội trưởng",
+            "commanderId": null
+          },
+          {
+            "id": "u-d7-bTT",
+            "children": [],
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "adminLevel": 1,
+            "type": "platoon",
+            "name": "Trung đội Thông tin"
+          },
+          {
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "id": "u-d7-bDKZ",
+            "children": [],
+            "type": "platoon",
+            "name": "Trung đội ĐKZ"
+          },
+          {
+            "id": "u-d7-b127",
+            "children": [],
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "type": "platoon",
+            "name": "Trung đội 12,7mm"
+          }
+        ],
+        "adminLevel": 4,
+        "commanderId": null,
+        "commanderTitle": "Tiểu đoàn trưởng",
+        "type": "battalion",
+        "name": "Tiểu đoàn 7"
+      },
+      {
+        "type": "battalion",
+        "name": "Tiểu đoàn 8",
+        "adminLevel": 4,
+        "commanderTitle": "Tiểu đoàn trưởng",
+        "commanderId": null,
+        "id": "u-d8",
+        "children": [
+          {
+            "commanderId": null,
+            "commanderTitle": "Tiểu đoàn trưởng",
+            "adminLevel": 4,
+            "children": [
+              {
+                "name": "Tiểu đoàn trưởng",
+                "type": "assistant",
+                "adminLevel": 4,
+                "commanderId": null,
+                "commanderTitle": "Tiểu",
+                "children": [],
+                "id": "u-d8-dt"
+              },
+              {
+                "type": "assistant",
+                "name": "Chính trị viên Tiểu đoàn",
+                "id": "u-d8-ctv",
+                "children": [],
+                "adminLevel": 3,
+                "commanderTitle": "Chính",
+                "commanderId": null
+              },
+              {
+                "name": "Phó Tiểu đoàn trưởng",
+                "type": "assistant",
+                "children": [],
+                "id": "u-d8-pdt",
+                "commanderId": null,
+                "commanderTitle": "Phó",
+                "adminLevel": 3
+              },
+              {
+                "commanderId": null,
+                "commanderTitle": "Chính",
+                "adminLevel": 3,
+                "children": [],
+                "id": "u-d8-ctvp",
+                "name": "Chính trị viên phó Tiểu đoàn",
+                "type": "assistant"
+              }
+            ],
+            "id": "u-d8-bch",
+            "name": "Ban chỉ huy Tiểu đoàn 8",
+            "type": "command"
+          },
+          {
+            "children": [],
+            "id": "u-d8-tltm",
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "name": "Trợ lý Tham mưu",
+            "type": "assistant"
+          },
+          {
+            "name": "Trợ lý Hậu cần",
+            "type": "assistant",
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "children": [],
+            "id": "u-d8-tlhc"
+          },
+          {
+            "commanderId": null,
+            "commanderTitle": "Nhân",
+            "adminLevel": 1,
+            "children": [],
+            "id": "u-d8-nvqy",
+            "name": "Nhân viên Quân y",
+            "type": "assistant"
+          },
+          {
+            "adminLevel": 1,
+            "commanderTitle": "Nhân",
+            "commanderId": null,
+            "children": [],
+            "id": "u-d8-nvqn",
+            "name": "Nhân viên Quân nhu",
+            "type": "assistant"
+          },
+          {
+            "name": "Nhân viên Quân khí",
+            "type": "assistant",
+            "children": [],
+            "id": "u-d8-nvqk",
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Nhân"
+          },
+          {
+            "name": "Đại đội 5",
+            "type": "company",
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Đại đội trưởng",
+            "children": [
+              {
+                "commanderTitle": "Phó Đại đội trưởng",
+                "commanderId": null,
+                "adminLevel": 2,
+                "id": "u-d8-c5-pdt",
+                "children": [],
+                "type": "assistant",
+                "name": "Phó Đại đội trưởng",
+                "abbr": "PĐĐT"
+              },
+              {
+                "commanderId": null,
+                "adminLevel": 2,
+                "commanderTitle": "Chính trị viên",
+                "children": [],
+                "id": "u-d8-c5-ctv",
+                "name": "Chính trị viên Đại đội",
+                "type": "assistant",
+                "abbr": "CTV"
+              },
+              {
+                "name": "Chính trị viên phó Đại đội",
+                "type": "assistant",
+                "abbr": "CTVP",
+                "commanderTitle": "Chính trị viên phó",
+                "commanderId": null,
+                "adminLevel": 2,
+                "children": [],
+                "id": "u-d8-c5-ctvp"
+              },
+              {
+                "adminLevel": 1,
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "id": "u-d8-c5-b1",
+                "children": [
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d8-c5-b1-a1",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "id": "u-d8-c5-b1-a2",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d8-c5-b1-a3",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ],
+                "type": "platoon",
+                "name": "Trung đội 1"
+              },
+              {
+                "id": "u-d8-c5-b2",
+                "children": [
+                  {
+                    "children": [],
+                    "id": "u-d8-c5-b2-a1",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d8-c5-b2-a2",
+                    "children": []
+                  },
+                  {
+                    "id": "u-d8-c5-b2-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ],
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "adminLevel": 1,
+                "type": "platoon",
+                "name": "Trung đội 2"
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 3",
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "adminLevel": 1,
+                "id": "u-d8-c5-b3",
+                "children": [
+                  {
+                    "id": "u-d8-c5-b3-a1",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d8-c5-b3-a2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "id": "u-d8-c5-b3-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ]
+              }
+            ],
+            "id": "u-d8-c5"
+          },
+          {
+            "id": "u-d8-c6",
+            "children": [
+              {
+                "id": "u-d8-c6-pdt",
+                "children": [],
+                "commanderTitle": "Phó Đại đội trưởng",
+                "commanderId": null,
+                "adminLevel": 2,
+                "abbr": "PĐĐT",
+                "type": "assistant",
+                "name": "Phó Đại đội trưởng"
+              },
+              {
+                "name": "Chính trị viên Đại đội",
+                "type": "assistant",
+                "abbr": "CTV",
+                "commanderTitle": "Chính trị viên",
+                "adminLevel": 2,
+                "commanderId": null,
+                "children": [],
+                "id": "u-d8-c6-ctv"
+              },
+              {
+                "id": "u-d8-c6-ctvp",
+                "children": [],
+                "commanderTitle": "Chính trị viên phó",
+                "adminLevel": 2,
+                "commanderId": null,
+                "abbr": "CTVP",
+                "type": "assistant",
+                "name": "Chính trị viên phó Đại đội"
+              },
+              {
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "id": "u-d8-c6-b1",
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "children": [],
+                    "id": "u-d8-c6-b1-a1"
+                  },
+                  {
+                    "name": "Tiểu đội 2",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d8-c6-b1-a2",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d8-c6-b1-a3"
+                  }
+                ],
+                "type": "platoon",
+                "name": "Trung đội 1"
+              },
+              {
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "children": [],
+                    "id": "u-d8-c6-b2-a1"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d8-c6-b2-a2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d8-c6-b2-a3",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  }
+                ],
+                "id": "u-d8-c6-b2",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "name": "Trung đội 2",
+                "type": "platoon"
+              },
+              {
+                "name": "Trung đội 3",
+                "type": "platoon",
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d8-c6-b3-a1",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  },
+                  {
+                    "name": "Tiểu đội 2",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d8-c6-b3-a2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "children": [],
+                    "id": "u-d8-c6-b3-a3"
+                  }
+                ],
+                "id": "u-d8-c6-b3",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null
+              }
+            ],
+            "commanderId": null,
+            "commanderTitle": "Đại đội trưởng",
+            "adminLevel": 3,
+            "type": "company",
+            "name": "Đại đội 6"
+          },
+          {
+            "adminLevel": 3,
+            "commanderTitle": "Đại đội trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "children": [],
+                "id": "u-d8-c7-pdt",
+                "commanderTitle": "Phó Đại đội trưởng",
+                "commanderId": null,
+                "adminLevel": 2,
+                "abbr": "PĐĐT",
+                "name": "Phó Đại đội trưởng",
+                "type": "assistant"
+              },
+              {
+                "id": "u-d8-c7-ctv",
+                "children": [],
+                "commanderTitle": "Chính trị viên",
+                "commanderId": null,
+                "adminLevel": 2,
+                "abbr": "CTV",
+                "type": "assistant",
+                "name": "Chính trị viên Đại đội"
+              },
+              {
+                "commanderTitle": "Chính trị viên phó",
+                "adminLevel": 2,
+                "commanderId": null,
+                "children": [],
+                "id": "u-d8-c7-ctvp",
+                "name": "Chính trị viên phó Đại đội",
+                "type": "assistant",
+                "abbr": "CTVP"
+              },
+              {
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "id": "u-d8-c7-b1",
+                "children": [
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d8-c7-b1-a1",
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d8-c7-b1-a2",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "id": "u-d8-c7-b1-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ],
+                "type": "platoon",
+                "name": "Trung đội 1"
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 2",
+                "id": "u-d8-c7-b2",
+                "children": [
+                  {
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "id": "u-d8-c7-b2-a1",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d8-c7-b2-a2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 3",
+                    "id": "u-d8-c7-b2-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  }
+                ],
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "adminLevel": 1
+              },
+              {
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "id": "u-d8-c7-b3",
+                "children": [
+                  {
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "children": [],
+                    "id": "u-d8-c7-b3-a1",
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "id": "u-d8-c7-b3-a2",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "id": "u-d8-c7-b3-a3",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ],
+                "type": "platoon",
+                "name": "Trung đội 3"
+              }
+            ],
+            "id": "u-d8-c7",
+            "name": "Đại đội 7",
+            "type": "company"
+          },
+          {
+            "id": "u-d8-c8",
+            "children": [
+              {
+                "abbr": "PĐĐT",
+                "type": "assistant",
+                "name": "Phó Đại đội trưởng",
+                "id": "u-d8-c8-pdt",
+                "children": [],
+                "commanderTitle": "Phó Đại đội trưởng",
+                "commanderId": null,
+                "adminLevel": 2
+              },
+              {
+                "id": "u-d8-c8-ctv",
+                "children": [],
+                "commanderId": null,
+                "adminLevel": 2,
+                "commanderTitle": "Chính trị viên",
+                "abbr": "CTV",
+                "type": "assistant",
+                "name": "Chính trị viên Đại đội"
+              },
+              {
+                "type": "assistant",
+                "name": "Chính trị viên phó Đại đội",
+                "abbr": "CTVP",
+                "commanderTitle": "Chính trị viên phó",
+                "commanderId": null,
+                "adminLevel": 2,
+                "id": "u-d8-c8-ctvp",
+                "children": []
+              },
+              {
+                "children": [
+                  {
+                    "id": "u-d8-c8-b1-a1",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 2",
+                    "id": "u-d8-c8-b1-a2",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  },
+                  {
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "id": "u-d8-c8-b1-a3",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ],
+                "id": "u-d8-c8-b1",
+                "adminLevel": 1,
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "name": "Trung đội 1",
+                "type": "platoon"
+              },
+              {
+                "name": "Trung đội 2",
+                "type": "platoon",
+                "children": [
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 1",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d8-c8-b2-a1",
+                    "children": []
+                  },
+                  {
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "children": [],
+                    "id": "u-d8-c8-b2-a2",
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d8-c8-b2-a3",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  }
+                ],
+                "id": "u-d8-c8-b2",
+                "adminLevel": 1,
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng"
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 3",
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "adminLevel": 1,
+                "id": "u-d8-c8-b3",
+                "children": [
+                  {
+                    "children": [],
+                    "id": "u-d8-c8-b3-a1",
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "name": "Tiểu đội 2",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d8-c8-b3-a2",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 3",
+                    "id": "u-d8-c8-b3-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  }
+                ]
+              }
+            ],
+            "adminLevel": 3,
+            "commanderTitle": "Đại đội trưởng",
+            "commanderId": null,
+            "type": "company",
+            "name": "Đại đội 8"
+          },
+          {
+            "type": "platoon",
+            "name": "Trung đội Thông tin",
+            "id": "u-d8-bTT",
+            "children": [],
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng",
+            "adminLevel": 1
+          },
+          {
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "children": [],
+            "id": "u-d8-bDKZ",
+            "name": "Trung đội ĐKZ",
+            "type": "platoon"
+          },
+          {
+            "name": "Trung đội 12,7mm",
+            "type": "platoon",
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "children": [],
+            "id": "u-d8-b127"
+          }
+        ]
+      },
+      {
+        "name": "Tiểu đoàn 9",
+        "type": "battalion",
+        "adminLevel": 4,
+        "commanderTitle": "Tiểu đoàn trưởng",
+        "commanderId": null,
+        "children": [
+          {
+            "id": "u-d9-bch",
+            "children": [
+              {
+                "children": [],
+                "id": "u-d9-dt",
+                "adminLevel": 4,
+                "commanderId": null,
+                "commanderTitle": "Tiểu",
+                "name": "Tiểu đoàn trưởng",
+                "type": "assistant"
+              },
+              {
+                "adminLevel": 3,
+                "commanderTitle": "Chính",
+                "commanderId": null,
+                "id": "u-d9-ctv",
+                "children": [],
+                "type": "assistant",
+                "name": "Chính trị viên Tiểu đoàn"
+              },
+              {
+                "name": "Phó Tiểu đoàn trưởng",
+                "type": "assistant",
+                "commanderId": null,
+                "commanderTitle": "Phó",
+                "adminLevel": 3,
+                "children": [],
+                "id": "u-d9-pdt"
+              },
+              {
+                "type": "assistant",
+                "name": "Chính trị viên phó Tiểu đoàn",
+                "adminLevel": 3,
+                "commanderId": null,
+                "commanderTitle": "Chính",
+                "id": "u-d9-ctvp",
+                "children": []
+              }
+            ],
+            "adminLevel": 4,
+            "commanderId": null,
+            "commanderTitle": "Tiểu đoàn trưởng",
+            "type": "command",
+            "name": "Ban chỉ huy Tiểu đoàn 9"
+          },
+          {
+            "type": "assistant",
+            "name": "Trợ lý Tham mưu",
+            "commanderId": null,
+            "commanderTitle": "Trợ",
+            "adminLevel": 3,
+            "id": "u-d9-tltm",
+            "children": []
+          },
+          {
+            "id": "u-d9-tlhc",
+            "children": [],
+            "adminLevel": 3,
+            "commanderTitle": "Trợ",
+            "commanderId": null,
+            "type": "assistant",
+            "name": "Trợ lý Hậu cần"
+          },
+          {
+            "children": [],
+            "id": "u-d9-nvqy",
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Nhân",
+            "name": "Nhân viên Quân y",
+            "type": "assistant"
+          },
+          {
+            "name": "Nhân viên Quân nhu",
+            "type": "assistant",
+            "children": [],
+            "id": "u-d9-nvqn",
+            "adminLevel": 1,
+            "commanderTitle": "Nhân",
+            "commanderId": null
+          },
+          {
+            "commanderId": null,
+            "commanderTitle": "Nhân",
+            "adminLevel": 1,
+            "id": "u-d9-nvqk",
+            "children": [],
+            "type": "assistant",
+            "name": "Nhân viên Quân khí"
+          },
+          {
+            "name": "Đại đội 9",
+            "type": "company",
+            "children": [
+              {
+                "children": [],
+                "id": "u-d9-c9-pdt",
+                "commanderTitle": "Phó Đại đội trưởng",
+                "commanderId": null,
+                "adminLevel": 2,
+                "abbr": "PĐĐT",
+                "name": "Phó Đại đội trưởng",
+                "type": "assistant"
+              },
+              {
+                "id": "u-d9-c9-ctv",
+                "children": [],
+                "commanderTitle": "Chính trị viên",
+                "commanderId": null,
+                "adminLevel": 2,
+                "abbr": "CTV",
+                "type": "assistant",
+                "name": "Chính trị viên Đại đội"
+              },
+              {
+                "children": [],
+                "id": "u-d9-c9-ctvp",
+                "commanderTitle": "Chính trị viên phó",
+                "commanderId": null,
+                "adminLevel": 2,
+                "abbr": "CTVP",
+                "name": "Chính trị viên phó Đại đội",
+                "type": "assistant"
+              },
+              {
+                "name": "Trung đội 1",
+                "type": "platoon",
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "adminLevel": 1,
+                "children": [
+                  {
+                    "children": [],
+                    "id": "u-d9-c9-b1-a1",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d9-c9-b1-a2",
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d9-c9-b1-a3",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "id": "u-d9-c9-b1"
+              },
+              {
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "children": [
+                  {
+                    "children": [],
+                    "id": "u-d9-c9-b2-a1",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "name": "Tiểu đội 2",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d9-c9-b2-a2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d9-c9-b2-a3"
+                  }
+                ],
+                "id": "u-d9-c9-b2",
+                "name": "Trung đội 2",
+                "type": "platoon"
+              },
+              {
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d9-c9-b3-a1"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d9-c9-b3-a2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "id": "u-d9-c9-b3-a3",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 3"
+                  }
+                ],
+                "id": "u-d9-c9-b3",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "name": "Trung đội 3",
+                "type": "platoon"
+              }
+            ],
+            "id": "u-d9-c9",
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Đại đội trưởng"
+          },
+          {
+            "id": "u-d9-c10",
+            "children": [
+              {
+                "children": [],
+                "id": "u-d9-c10-pdt",
+                "commanderId": null,
+                "adminLevel": 2,
+                "commanderTitle": "Phó Đại đội trưởng",
+                "abbr": "PĐĐT",
+                "name": "Phó Đại đội trưởng",
+                "type": "assistant"
+              },
+              {
+                "type": "assistant",
+                "name": "Chính trị viên Đại đội",
+                "abbr": "CTV",
+                "commanderTitle": "Chính trị viên",
+                "commanderId": null,
+                "adminLevel": 2,
+                "id": "u-d9-c10-ctv",
+                "children": []
+              },
+              {
+                "name": "Chính trị viên phó Đại đội",
+                "type": "assistant",
+                "abbr": "CTVP",
+                "commanderTitle": "Chính trị viên phó",
+                "commanderId": null,
+                "adminLevel": 2,
+                "children": [],
+                "id": "u-d9-c10-ctvp"
+              },
+              {
+                "name": "Trung đội 1",
+                "type": "platoon",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "children": [
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 1",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "id": "u-d9-c10-b1-a1",
+                    "children": []
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d9-c10-b1-a2",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d9-c10-b1-a3",
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "id": "u-d9-c10-b1"
+              },
+              {
+                "adminLevel": 1,
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "id": "u-d9-c10-b2",
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d9-c10-b2-a1"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d9-c10-b2-a2",
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d9-c10-b2-a3",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  }
+                ],
+                "type": "platoon",
+                "name": "Trung đội 2"
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 3",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "id": "u-d9-c10-b3",
+                "children": [
+                  {
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "id": "u-d9-c10-b3-a1",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "name": "Tiểu đội 2",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d9-c10-b3-a2"
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 3",
+                    "id": "u-d9-c10-b3-a3",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  }
+                ]
+              }
+            ],
+            "adminLevel": 3,
+            "commanderId": null,
+            "commanderTitle": "Đại đội trưởng",
+            "type": "company",
+            "name": "Đại đội 10"
+          },
+          {
+            "adminLevel": 3,
+            "commanderTitle": "Đại đội trưởng",
+            "commanderId": null,
+            "children": [
+              {
+                "children": [],
+                "id": "u-d9-c11-pdt",
+                "commanderId": null,
+                "adminLevel": 2,
+                "commanderTitle": "Phó Đại đội trưởng",
+                "abbr": "PĐĐT",
+                "name": "Phó Đại đội trưởng",
+                "type": "assistant"
+              },
+              {
+                "children": [],
+                "id": "u-d9-c11-ctv",
+                "commanderTitle": "Chính trị viên",
+                "adminLevel": 2,
+                "commanderId": null,
+                "abbr": "CTV",
+                "name": "Chính trị viên Đại đội",
+                "type": "assistant"
+              },
+              {
+                "commanderTitle": "Chính trị viên phó",
+                "commanderId": null,
+                "adminLevel": 2,
+                "id": "u-d9-c11-ctvp",
+                "children": [],
+                "type": "assistant",
+                "name": "Chính trị viên phó Đại đội",
+                "abbr": "CTVP"
+              },
+              {
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "id": "u-d9-c11-b1",
+                "children": [
+                  {
+                    "id": "u-d9-c11-b1-a1",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "id": "u-d9-c11-b1-a2",
+                    "children": [],
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d9-c11-b1-a3",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "type": "platoon",
+                "name": "Trung đội 1"
+              },
+              {
+                "name": "Trung đội 2",
+                "type": "platoon",
+                "adminLevel": 1,
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d9-c11-b2-a1"
+                  },
+                  {
+                    "name": "Tiểu đội 2",
+                    "type": "squad",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d9-c11-b2-a2"
+                  },
+                  {
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "children": [],
+                    "id": "u-d9-c11-b2-a3",
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "id": "u-d9-c11-b2"
+              },
+              {
+                "name": "Trung đội 3",
+                "type": "platoon",
+                "children": [
+                  {
+                    "name": "Tiểu đội 1",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d9-c11-b3-a1",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  },
+                  {
+                    "id": "u-d9-c11-b3-a2",
+                    "children": [],
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "children": [],
+                    "id": "u-d9-c11-b3-a3",
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "id": "u-d9-c11-b3",
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null
+              }
+            ],
+            "id": "u-d9-c11",
+            "name": "Đại đội 11",
+            "type": "company"
+          },
+          {
+            "type": "company",
+            "name": "Đại đội 12",
+            "adminLevel": 3,
+            "commanderTitle": "Đại đội trưởng",
+            "commanderId": null,
+            "id": "u-d9-c12",
+            "children": [
+              {
+                "abbr": "PĐĐT",
+                "name": "Phó Đại đội trưởng",
+                "type": "assistant",
+                "children": [],
+                "id": "u-d9-c12-pdt",
+                "commanderId": null,
+                "adminLevel": 2,
+                "commanderTitle": "Phó Đại đội trưởng"
+              },
+              {
+                "name": "Chính trị viên Đại đội",
+                "type": "assistant",
+                "abbr": "CTV",
+                "commanderTitle": "Chính trị viên",
+                "adminLevel": 2,
+                "commanderId": null,
+                "children": [],
+                "id": "u-d9-c12-ctv"
+              },
+              {
+                "abbr": "CTVP",
+                "type": "assistant",
+                "name": "Chính trị viên phó Đại đội",
+                "id": "u-d9-c12-ctvp",
+                "children": [],
+                "commanderTitle": "Chính trị viên phó",
+                "commanderId": null,
+                "adminLevel": 2
+              },
+              {
+                "adminLevel": 1,
+                "commanderTitle": "Trung đội trưởng",
+                "commanderId": null,
+                "children": [
+                  {
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "children": [],
+                    "id": "u-d9-c12-b1-a1",
+                    "name": "Tiểu đội 1",
+                    "type": "squad"
+                  },
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 2",
+                    "id": "u-d9-c12-b1-a2",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng"
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d9-c12-b1-a3",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  }
+                ],
+                "id": "u-d9-c12-b1",
+                "name": "Trung đội 1",
+                "type": "platoon"
+              },
+              {
+                "type": "platoon",
+                "name": "Trung đội 2",
+                "adminLevel": 1,
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "id": "u-d9-c12-b2",
+                "children": [
+                  {
+                    "type": "squad",
+                    "name": "Tiểu đội 1",
+                    "id": "u-d9-c12-b2-a1",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null
+                  },
+                  {
+                    "id": "u-d9-c12-b2-a2",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 2"
+                  },
+                  {
+                    "name": "Tiểu đội 3",
+                    "type": "squad",
+                    "children": [],
+                    "id": "u-d9-c12-b2-a3",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0
+                  }
+                ]
+              },
+              {
+                "name": "Trung đội 3",
+                "type": "platoon",
+                "children": [
+                  {
+                    "id": "u-d9-c12-b3-a1",
+                    "children": [],
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "type": "squad",
+                    "name": "Tiểu đội 1"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d9-c12-b3-a2",
+                    "adminLevel": 0,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "commanderId": null,
+                    "name": "Tiểu đội 2",
+                    "type": "squad"
+                  },
+                  {
+                    "children": [],
+                    "id": "u-d9-c12-b3-a3",
+                    "commanderId": null,
+                    "commanderTitle": "Tiểu đội trưởng",
+                    "adminLevel": 0,
+                    "name": "Tiểu đội 3",
+                    "type": "squad"
+                  }
+                ],
+                "id": "u-d9-c12-b3",
+                "commanderId": null,
+                "commanderTitle": "Trung đội trưởng",
+                "adminLevel": 1
+              }
+            ]
+          },
+          {
+            "name": "Trung đội Thông tin",
+            "type": "platoon",
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null,
+            "children": [],
+            "id": "u-d9-bTT"
+          },
+          {
+            "type": "platoon",
+            "name": "Trung đội ĐKZ",
+            "id": "u-d9-bDKZ",
+            "children": [],
+            "adminLevel": 1,
+            "commanderTitle": "Trung đội trưởng",
+            "commanderId": null
+          },
+          {
+            "name": "Trung đội 12,7mm",
+            "type": "platoon",
+            "children": [],
+            "id": "u-d9-b127",
+            "adminLevel": 1,
+            "commanderId": null,
+            "commanderTitle": "Trung đội trưởng"
+          }
+        ],
+        "id": "u-d9"
+      }
+    ],
+    "type": "regiment",
+    "name": "Trung đoàn 141"
+  },
+  "userProfile": {
+    "signupAt": 1778763806877,
+    "email": "e141404@ll47.local",
+    "rank": "Trung tá",
+    "unitId": "u-bch",
+    "phone": "",
+    "accountStatus": "active",
+    "isAdmin": false,
+    "lastLoginAt": 1779298854789,
+    "unitName": "Ban chỉ huy Trung đoàn",
+    "role": "Trung đoàn trưởng",
+    "name": "Đỗ Văn B",
+    "adminLevel": 4,
+    "username": "e141404"
+  }
+}

@@ -1,0 +1,13 @@
+# Pin ve Flet 0.25.2 — code dung API cu (ft.alignment.center, ...).
+# Flet 0.27+ co breaking changes nen KHONG nang version tru khi refactor toan bo.
+flet==0.25.2
+flet-cli==0.25.2
+
+# Backend moi: Node.js + Socket.io + MongoDB. Client Python goi qua REST (urllib
+# stdlib, khong can them dep) + Socket.io cho realtime.
+# python-socketio[client] dung cho listen realtime; neu thieu, app TU fallback
+# sang polling REST nen van chay binh thuong.
+python-socketio[client]>=5.11.0
+websocket-client>=1.7.0
+
+Pillow>=10.2.0

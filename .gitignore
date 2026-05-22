@@ -1,0 +1,32 @@
+# ===== Python / Flet =====
+__pycache__/
+*.pyc
+.venv/
+build/
+dist/
+build_pyi/
+*.bak
+*.bak2
+_fix_dialog.py
+
+# ===== Node backend =====
+server/node_modules/
+server/.env
+
+# ===== Secrets — KHONG commit =====
+.env
+**/auth_creds.json
+**/serviceAccount*.json
+firebase-service-account*.json
+GoogleService-Info.plist
+google-services.json
+
+# ===== Logs =====
+*.log
+python_logs.txt
+run_error.log
+dart_output.log
+
+# ===== OS =====
+.DS_Store
+Thumbs.db

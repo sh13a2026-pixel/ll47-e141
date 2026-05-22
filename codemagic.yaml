@@ -1,0 +1,158 @@
+# ===========================================================================
+# Codemagic CI/CD — đóng gói app LL47 (Flet) cho Android + iOS.
+#
+# Kết nối repo GitHub này vào Codemagic (codemagic.io) → chọn workflow → Start build.
+# Output (APK/AAB/IPA) tải về ở mục Artifacts của mỗi build, hoặc tự gửi email/TestFlight.
+#
+# CHUẨN BỊ TRƯỚC (làm 1 lần trong Codemagic UI):
+#   1. Teams → Integrations → kết nối GitHub, chọn repo này.
+#   2. (iOS) Teams → Integrations → App Store Connect: thêm API key (Issuer ID,
+#      Key ID, .p8). Đặt TÊN integration trùng với 'app_store_connect' bên dưới.
+#   3. (iOS) Code signing identities: thêm Distribution certificate + provisioning
+#      profile cho bundle id 'vn.mil.e141.ll47' (hoặc bật automatic signing).
+#   4. (Android, nếu ký release) tạo Environment group 'll47_android' chứa biến
+#      CM_KEYSTORE, CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS, CM_KEY_PASSWORD.
+#   5. ĐỔI biến LL47_API_BASE bên dưới thành URL backend Node của bạn
+#      (vd: https://ll47-backend.onrender.com).
+# ===========================================================================
+
+definitions:
+  flet_install: &flet_install
+    name: Cài Python + Flet + dependencies
+    script: |
+      python3 -m pip install --upgrade pip
+      pip3 install -r requirements.txt
+      flet --version
+
+  set_api_base: &set_api_base
+    name: Ghi URL backend vào app (override _DEFAULT_API_BASE)
+    script: |
+      if [ -n "$LL47_API_BASE" ]; then
+        echo "Đặt API base = $LL47_API_BASE"
+        sed -i.bak "s|_DEFAULT_API_BASE = .*|_DEFAULT_API_BASE = \"$LL47_API_BASE\"|" app/firebase_config.py
+        grep _DEFAULT_API_BASE app/firebase_config.py
+      else
+        echo "LL47_API_BASE rỗng — dùng giá trị mặc định trong code."
+      fi
+
+workflows:
+  # =========================================================================
+  # ANDROID — tạo APK (cài tay) + AAB (lên Google Play) CHO FLET
+  # =========================================================================
+  android-flet:
+    name: LL47 Android (APK + AAB)
+    instance_type: linux_x2
+    max_build_duration: 60
+    environment:
+      java: 17
+      flutter: 3.24.5
+      # groups:                 # BẬT LẠI khi có keystore ký release cho Play Store
+      #   - ll47_android        # (tạo Environment group 'll47_android' trên Codemagic trước)
+      vars:
+        LL47_API_BASE: "https://ll47-backend.onrender.com"   # << ĐỔI URL backend
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+        - pattern: master
+          include: true
+    scripts:
+      - *flet_install
+      - *set_api_base
+      - name: Build APK
+        script: |
+          flet build apk --project ll47_e141 --org vn.mil.e141 -v
+      - name: Build AAB (Google Play)
+        script: |
+          flet build aab --project ll47_e141 --org vn.mil.e141 -v
+    artifacts:
+      - build/apk/*.apk
+      - build/aab/*.aab
+    publishing:
+      email:
+        recipients:
+          - 96nothingg@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # =========================================================================
+  # iOS — tạo IPA (TestFlight / App Store). Cần macOS + ký số.
+  # =========================================================================
+  ios-flet:
+    name: LL47 iOS (IPA)
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+    integrations:
+      app_store_connect: LL47_ASC_API_KEY   # << tên integration đã tạo ở Codemagic UI
+    environment:
+      flutter: 3.24.5
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store         # hoặc: ad_hoc / development
+        bundle_identifier: vn.mil.e141.ll47
+      vars:
+        LL47_API_BASE: "https://ll47-backend.onrender.com"   # << ĐỔI URL backend
+        BUNDLE_ID: "vn.mil.e141.ll47"
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+        - pattern: master
+          include: true
+    scripts:
+      - *flet_install
+      - *set_api_base
+      - name: Build IPA (Flet → Flutter → Xcode archive)
+        script: |
+          flet build ipa --project ll47_e141 --org vn.mil.e141 -v
+      - name: Áp provisioning profile do Codemagic quản lý
+        script: |
+          # Codemagic đã tải cert + profile về máy build (nhờ ios_signing).
+          # Áp profile vào project Xcode mà Flet vừa sinh ra rồi đóng gói lại .ipa.
+          xcode-project use-profiles || echo "Bỏ qua nếu flet đã ký sẵn."
+    artifacts:
+      - build/ipa/*.ipa
+      - build/**/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # submit_to_app_store: false   # bật khi muốn nộp duyệt App Store
+      email:
+        recipients:
+          - 96nothingg@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # =========================================================================
+  # ANDROID — tạo APK cho Flutter Chat App mới
+  # =========================================================================
+  android-flutter-chat:
+    name: LL47 Chat Android (Flutter)
+    instance_type: linux_x2
+    max_build_duration: 60
+    environment:
+      java: 17
+      flutter: stable
+    triggering:
+      events:
+        - push
+    scripts:
+      - name: Lấy packages cho chat_app
+        script: |
+          cd chat_app
+          flutter pub get
+      - name: Build APK (Flutter)
+        script: |
+          cd chat_app
+          flutter build apk --release -v
+    artifacts:
+      - chat_app/build/app/outputs/flutter-apk/app-release.apk

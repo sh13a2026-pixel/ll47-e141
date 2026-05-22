@@ -1,0 +1,29 @@
+# Render Blueprint — deploy backend Node (thư mục server/) lên Render.
+# Cách dùng: Render Dashboard → New → Blueprint → chọn repo này.
+# DB dùng MongoDB Atlas (free tier): tạo cluster, lấy connection string, dán vào
+# biến MONGODB_URI khi Render hỏi (sync:false = nhập tay, không lưu trong repo).
+services:
+  - type: web
+    name: ll47-backend
+    runtime: node
+    rootDir: server
+    plan: free
+    autoDeploy: true
+    buildCommand: npm install
+    startCommand: node src/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: MONGODB_URI          # mongodb+srv://...  (từ MongoDB Atlas)
+        sync: false
+      - key: MONGODB_DB
+        value: ll47
+      - key: JWT_SECRET           # tự sinh ngẫu nhiên
+        generateValue: true
+      - key: PUBLIC_URL           # đặt = URL Render của service (vd https://ll47-backend.onrender.com)
+        sync: false
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: MAX_UPLOAD_MB
+        value: "25"
+      - key: FIREBASE_SERVICE_ACCOUNT   # (tuỳ chọn) JSON service account để push nền
+        sync: false
