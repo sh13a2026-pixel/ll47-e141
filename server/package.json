@@ -9,7 +9,7 @@
     "dev": "node --watch src/index.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": "20.x"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

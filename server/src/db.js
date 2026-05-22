@@ -21,6 +21,9 @@ async function connect() {
     serverSelectionTimeoutMS: 30000,
     connectTimeoutMS: 30000,
     family: 4,
+    tls: true,
+    tlsAllowInvalidCertificates: false,
+    tlsAllowInvalidHostnames: false,
   });
   await client.connect();
   db = client.db(dbName);
