@@ -85,6 +85,9 @@ class Store:
     # KHÔNG sync xuống từ app_data. Mỗi user load profile riêng từ users/{uid}.
     PRIVATE_KEYS = {"userProfile", "notifPrefs", "hiddenChatRooms"}
 
+    # Key lưu danh sách doc ID đang chờ xoá khỏi v2_collections (persist qua restart)
+    _V2_PENDING_DELETES_FILE = DATA_DIR / "v2_pending_deletes.json"
+
     def __init__(self, path: Path = DATA_FILE) -> None:
         self.path = path
         self._cache: dict[str, Any] | None = None
@@ -94,6 +97,47 @@ class Store:
         self._fs_uid: str | None = None
         # Hàng đợi key cần re-sync khi mạng có lại
         self._pending_writes: set[str] = set()
+        # Map: v2_collection_key → set of doc IDs đang chờ xoá khỏi DB
+        # Được persist ra file để tồn tại qua restart app
+        self._v2_pending_deletes: dict[str, set[str]] = self._load_v2_deletes()
+
+    # ---- Persistent pending-delete helpers ----
+    def _load_v2_deletes(self) -> dict[str, set[str]]:
+        try:
+            raw = json.loads(self._V2_PENDING_DELETES_FILE.read_text(encoding="utf-8"))
+            return {k: set(v) for k, v in raw.items() if isinstance(v, list)}
+        except Exception:
+            return {}
+
+    def _save_v2_deletes(self) -> None:
+        try:
+            self._V2_PENDING_DELETES_FILE.write_text(
+                json.dumps({k: list(v) for k, v in self._v2_pending_deletes.items()},
+                           ensure_ascii=False),
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
+
+    def record_v2_delete(self, col_key: str, doc_id: str) -> None:
+        """Đánh dấu doc_id cần xoá khỏi v2_collections[col_key].
+        Được gọi khi user xoá 1 item nhưng DB delete chưa confirm.
+        """
+        with self._lock:
+            self._v2_pending_deletes.setdefault(col_key, set()).add(str(doc_id))
+            self._pending_writes.add(col_key)  # ngăn sync ghi đè
+            self._save_v2_deletes()
+
+    def confirm_v2_delete(self, col_key: str, doc_id: str) -> None:
+        """Xác nhận đã xoá doc_id khỏi DB. Bỏ khỏi pending list."""
+        with self._lock:
+            ids = self._v2_pending_deletes.get(col_key, set())
+            ids.discard(str(doc_id))
+            if not ids:
+                # Hết pending deletes cho key này → bỏ khoá pending để sync hoạt động lại
+                self._v2_pending_deletes.pop(col_key, None)
+                self._pending_writes.discard(col_key)
+            self._save_v2_deletes()
 
     # ---- Local file IO ----
     def _load(self) -> dict[str, Any]:
@@ -159,11 +203,45 @@ class Store:
         """Liên kết với 1 FirestoreClient đã có idToken hợp lệ."""
         self._fs_client = fs_client
         self._fs_uid = uid
+        # Tải lại pending deletes từ file (tồn tại qua restart)
+        self._v2_pending_deletes = self._load_v2_deletes()
+        # Đánh dấu pending_writes cho các key có pending deletes
+        # → sync_from_firestore sẽ không ghi đè khi chưa xoá xong
+        for col_key in self._v2_pending_deletes:
+            self._pending_writes.add(col_key)
+        # Nếu còn pending deletes từ lần trước, thử lại trong background
+        if self._v2_pending_deletes:
+            threading.Thread(target=self._flush_v2_deletes, daemon=True).start()
+
+    def _flush_v2_deletes(self) -> None:
+        """Background: thử xoá các doc còn trong _v2_pending_deletes khỏi DB."""
+        import time as _time
+        _time.sleep(15)  # đợi server wake up
+        v2_col_map = {
+            "soldiers": "v2_soldiers",
+            "reports": "v2_reports",
+            "notifs": "v2_notifs",
+            "f47Campaigns": "v2_f47Campaigns",
+        }
+        for col_key, ids_to_delete in list(self._v2_pending_deletes.items()):
+            col_name = v2_col_map.get(col_key)
+            if not col_name:
+                continue
+            for doc_id in list(ids_to_delete):
+                for _att in range(3):
+                    try:
+                        if self._fs_client:
+                            self._fs_client.delete_doc(f"{col_name}/e141/{doc_id}")
+                        self.confirm_v2_delete(col_key, doc_id)
+                        break
+                    except Exception:
+                        _time.sleep(5)
 
     def unbind_firestore(self) -> None:
         self._fs_client = None
         self._fs_uid = None
         self._pending_writes.clear()
+        # Không clear _v2_pending_deletes — giữ lại để khi login lại còn retry xoá DB
 
     def is_bound(self) -> bool:
         return self._fs_client is not None
@@ -209,9 +287,17 @@ class Store:
                     continue
                 try:
                     col_docs = self._fs_client.list_collection(f"{col_name}/e141")
-                    if col_docs:
-                        d[key] = col_docs
-                        count += len(col_docs)
+                    if col_docs is not None:
+                        # Lọc bỏ các doc đang chờ xoá khỏi DB (kể cả khi DB chưa phản ánh)
+                        pending_del_ids = self._v2_pending_deletes.get(key, set())
+                        if pending_del_ids:
+                            col_docs = [
+                                doc for doc in col_docs
+                                if str(doc.get("_id") or doc.get("id") or "") not in pending_del_ids
+                            ]
+                        if col_docs:
+                            d[key] = col_docs
+                            count += len(col_docs)
                 except Exception:
                     pass
 
@@ -281,6 +367,7 @@ class Store:
                     new_ids.discard("")
 
                     # Xoá các doc không còn trong snapshot (đã bị delete local)
+                    all_deletes_ok = True
                     try:
                         existing_docs = client.list_collection(f"{col_name}/e141")
                         for ex in existing_docs:
@@ -288,19 +375,30 @@ class Store:
                             if ex_id and ex_id not in new_ids:
                                 try:
                                     client.delete_doc(f"{col_name}/e141/{ex_id}")
+                                    # Xoá thành công → bỏ khỏi pending_deletes
+                                    self.confirm_v2_delete(key, ex_id)
                                 except Exception:
-                                    pass
+                                    # Xoá thất bại → giữ trong pending_deletes
+                                    self.record_v2_delete(key, ex_id)
+                                    all_deletes_ok = False
                     except Exception:
-                        pass
+                        # Không list được collection → coi như chưa xoá được
+                        all_deletes_ok = False
 
                     # Upsert các item còn lại
                     for item in snapshot:
                         item_id = str(item.get("id") or item.get("_id") or "")
                         if item_id:
                             client.set_doc(f"{col_name}/e141/{item_id}", item)
+
+                    # Chỉ bỏ khỏi pending_writes khi TẤT CẢ deletes thành công
+                    # Nếu còn delete thất bại: giữ trong pending → sync sẽ bị skip
+                    if all_deletes_ok:
+                        self._pending_writes.discard(key)
+                    # else: key vẫn trong pending_writes → sync sẽ không ghi đè local
                 else:
                     client.set_doc(path, {"value": snapshot})
-                self._pending_writes.discard(key)
+                    self._pending_writes.discard(key)
             except Exception:
                 pass  # giữ lại trong pending để retry sau
 

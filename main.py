@@ -5765,22 +5765,28 @@ class App:
             except Exception:
                 pass
             page.update()
-            # Xoá trong background: DB trước, local sau để tránh sync ghi ngược
+            # Đánh dấu NGAY để sync không ghi đè trong khi đợi DB
+            store.STORE.record_v2_delete("f47Campaigns", str(cid))
+            # Cập nhật local cache ngay lập tức
+            camps_now = store.get("f47Campaigns", store.seed_f47)
+            camps_now = [c for c in camps_now if c.get("id") != cid]
+            store.STORE.set_local("f47Campaigns", camps_now)
+            # Xoá khỏi DB trong background
             def _delete_worker():
-                # 1. Xoá khỏi DB trước (synchronous trong thread)
-                for _attempt in range(3):
+                import time as _t2
+                deleted = False
+                for _attempt in range(5):  # 5 lần retry, mỗi lần cách 6s
                     try:
                         FS.delete_doc(f"v2_f47Campaigns/e141/{cid}")
+                        deleted = True
                         break
                     except Exception:
-                        import time as _t2
-                        _t2.sleep(3)
-                # 2. Cập nhật local cache NGAY (dùng set_local tránh trigger _push thừa)
-                camps2 = store.get("f47Campaigns", store.seed_f47)
-                camps2 = [c for c in camps2 if c.get("id") != cid]
-                store.STORE.set_local("f47Campaigns", camps2)
-                # 3. set_value để sync sang các thiết bị khác
-                store.set_value("f47Campaigns", camps2)
+                        _t2.sleep(6)
+                if deleted:
+                    # Xoá thành công → xác nhận và sync_value để cập nhật các thiết bị khác
+                    store.STORE.confirm_v2_delete("f47Campaigns", str(cid))
+                    store.set_value("f47Campaigns", store.STORE._load().get("f47Campaigns", []))
+                # Dù xoá được hay không, local đã filtered → hiển thị đúng
                 store.log_activity(f"Xoá F47: {title[:40]}")
                 def _go():
                     self.toast(f"🗑 Đã xoá: {title[:40]}")
