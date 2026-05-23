@@ -504,7 +504,6 @@ RANKS: list[str] = [
     "Hạ sĩ",
     "Trung sĩ",
     "Thượng sĩ",
-    "Chuẩn úy",
     "Thiếu úy",
     "Trung úy",
     "Thượng úy",
