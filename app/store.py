@@ -499,11 +499,20 @@ def seed_units() -> dict:
 
 # Danh sách cấp bậc quân đội
 RANKS: list[str] = [
+    # Binh sĩ
     "Binh nhì",
     "Binh nhất",
+    # Hạ sĩ quan
     "Hạ sĩ",
     "Trung sĩ",
     "Thượng sĩ",
+    # Quân nhân chuyên nghiệp (QNCN)
+    "Thiếu úy QNCN",
+    "Trung úy QNCN",
+    "Thượng úy QNCN",
+    "Đại úy QNCN",
+    "Thiếu tá QNCN",
+    # Sĩ quan
     "Thiếu úy",
     "Trung úy",
     "Thượng úy",
