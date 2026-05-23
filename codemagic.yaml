@@ -68,11 +68,25 @@ workflows:
             --include-packages firebase_core firebase_messaging shared_preferences \
             --project ll47_e141 --org vn.mil.e141 || true
 
-          # Bước 2: Bật buildConfig cho firebase_core 1.x (AGP 8.x tắt mặc định)
-          echo "android.buildFeatures.buildConfig=true" >> build/flutter/android/gradle.properties
+          # Bước 2: Force firebase_core >= 3.x (firebase_core 1.x dùng custom BuildConfig
+          # bị tắt mặc định trong AGP 8.x → cần nâng lên bản mới không có vấn đề đó)
+          cd build/flutter
+          python3 - <<'PYEOF'
+import re
+content = open('pubspec.yaml').read()
+# Thêm dependency_overrides cho firebase nếu chưa có
+if 'firebase_core:' not in content.split('dependency_overrides:')[-1]:
+    content = content.replace(
+        'window_manager: ^0.4.3',
+        'window_manager: ^0.4.3\n  firebase_core: ">=3.0.0 <6.0.0"\n  firebase_messaging: ">=14.0.0 <17.0.0"'
+    )
+open('pubspec.yaml', 'w').write(content)
+print("pubspec.yaml updated:")
+print(open('pubspec.yaml').read())
+PYEOF
+          flutter pub get
 
           # Bước 3: Chạy lại flutter build apk trực tiếp
-          cd build/flutter
           flutter build apk --release \
             --build-number 26 --build-name 2.6.0
 
