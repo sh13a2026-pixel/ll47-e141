@@ -62,46 +62,24 @@ workflows:
       - *set_api_base
       - name: Build APK
         script: |
-          # Bước 1: flet generate Flutter project + package Python
-          # (sẽ fail ở Gradle do firebase_core 1.x cần buildConfig, nhưng project đã được gen)
+          # App LL47 đã migrate sang Node.js backend — không dùng Firebase gì cả.
+          # firebase_config.py chỉ chứa URL config (không import firebase).
+          # → Không cần --include-packages, flet build thẳng một bước.
           flet build apk \
-            --include-packages firebase_core firebase_messaging shared_preferences \
-            --project ll47_e141 --org vn.mil.e141 || true
-
-          # Bước 2: Force firebase_core >= 3.x (firebase_core 1.x dùng custom BuildConfig
-          # bị tắt mặc định trong AGP 8.x → cần nâng lên bản mới không có vấn đề đó)
-          cd build/flutter
-          python3 -c "f='pubspec.yaml';c=open(f).read();already='firebase_core:'in c.split('dependency_overrides:')[-1];n='window_manager: ^0.4.3';r=n+'\n  firebase_core: \">=3.0.0 <6.0.0\"\n  firebase_messaging: \">=14.0.0 <17.0.0\"';open(f,'w').write(c.replace(n,r)if not already else c);print('patched'if not already else 'already patched')"
-          cat pubspec.yaml
-          flutter pub get
-
-          # Bước 3: Patch main.dart — xóa các lời gọi ensureInitialized() không tồn tại
-          # (flet 0.25.2 generate sai — firebase_messaging và shared_preferences không có
-          # top-level ensureInitialized(); lỗi bị ẩn trước đây vì build fail sớm hơn ở Gradle)
-          python3 -c "import re;f='lib/main.dart';c=open(f).read();c=re.sub(r'[^\n]*firebase_messaging\.ensureInitialized\(\)[^\n]*\n','',c);c=re.sub(r'[^\n]*shared_preferences\.ensureInitialized\(\)[^\n]*\n','',c);open(f,'w').write(c);print('main.dart patched')"
-          echo "--- main.dart ensureInitialized references after patch ---"
-          grep -n "ensureInitialized" lib/main.dart || echo "(none)"
-
-          # Bước 5: Export SERIOUS_PYTHON_SITE_PACKAGES (bắt buộc khi gọi flutter build trực tiếp)
-          # flet build apk đặt site-packages tại <project_root>/build/site-packages
-          cd ../..
-          export SERIOUS_PYTHON_SITE_PACKAGES="$(pwd)/build/site-packages"
-          echo "SERIOUS_PYTHON_SITE_PACKAGES=$SERIOUS_PYTHON_SITE_PACKAGES"
-          ls "$SERIOUS_PYTHON_SITE_PACKAGES" | head -5
-
-          # Bước 6: Chạy lại flutter build apk trực tiếp
-          cd build/flutter
-          flutter build apk --release \
+            --project ll47_e141 --org vn.mil.e141 \
             --build-number 26 --build-name 2.6.0
 
       - name: Copy APK to output
         script: |
           mkdir -p build/apk
+          cp build/flutter/build/app/outputs/apk/release/app-release.apk \
+             build/apk/ll47-e141-v2.6.0.apk 2>/dev/null || \
           cp build/flutter/build/app/outputs/flutter-apk/app-release.apk \
-             build/apk/ll47-e141-v2.6.0.apk || true
+             build/apk/ll47-e141-v2.6.0.apk 2>/dev/null || true
+          ls -lh build/apk/ || true
     artifacts:
       - build/apk/*.apk
-      - build/aab/*.aab
+      - build/flutter/build/app/outputs/**/*.apk
     publishing:
       email:
         recipients:
