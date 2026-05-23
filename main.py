@@ -107,6 +107,22 @@ def _is_super_admin_username(u: str) -> bool:
     return _username_key(u) == "e141001"
 
 
+async def _register_fcm_token_async(page: ft.Page, uid: str) -> None:
+    """Đọc FCM token do Flutter firebase_init.dart ghi vào client_storage,
+    rồi đăng ký lên server để server biết đường gửi push nền.
+    Chỉ chạy được khi page đã sẵn sàng (sau show_app)."""
+    try:
+        from app import fcm as _fcm
+        token = await page.client_storage.get_async("fcm_token")
+        if token and uid:
+            platform = str(getattr(page, "platform", "") or "").lower()
+            if not platform:
+                platform = "android"
+            _fcm.register_token(FS, uid, token, platform=platform)
+    except Exception:
+        pass
+
+
 def _looks_like_firebase_uid(uid: str | None) -> bool:
     if not uid or not isinstance(uid, str):
         return False
@@ -122,15 +138,16 @@ def _hydrate_profile_after_login(creds: dict, login_username: str) -> None:
     profile_remote: dict = {}
     try:
         doc = FS.get_doc(f"users/{uid}")
-        if doc is None and not _is_super_admin_username(uname_raw):
-            profile_remote = {"accountStatus": "locked"}
-        elif doc:
+        if doc:
             profile_remote = {k: v for k, v in doc.items() if not str(k).startswith("_")}
+        # doc is None → tài khoản mới chưa có profile doc hoặc mạng gián đoạn
+        # → dùng profile rỗng, KHÔNG auto-lock (tránh khoá oan do network lỗi)
     except Exception:
         profile_remote = {}
 
     base = store.seed_user_profile()
     merged = {**base, **profile_remote}
+    merged["id"] = uid  # đảm bảo luôn có id để show_app fetch đúng
     merged["username"] = uname_raw if uname_raw else merged.get("username", "")
     merged["email"] = creds.get("email") or merged.get("email", "")
 
@@ -140,8 +157,6 @@ def _hydrate_profile_after_login(creds: dict, login_username: str) -> None:
         merged["adminLevel"] = 5
         merged.setdefault("role", merged.get("role") or "Quản trị hệ thống")
         merged.setdefault("unitName", merged.get("unitName") or "Trung đoàn 141")
-
-    store.set_value("userProfile", merged)
 
     soldiers = store.get("soldiers", store.seed_soldiers)
     idx = next(
@@ -153,6 +168,22 @@ def _hydrate_profile_after_login(creds: dict, login_username: str) -> None:
         ),
         None,
     )
+
+    # Fallback: nếu server không trả về adminLevel/isAdmin đầy đủ,
+    # dùng soldiers cache để giữ quyền không bị mất.
+    if idx is not None:
+        sol = soldiers[idx]
+        existing_level = int(sol.get("adminLevel") or 0)
+        current_level = int(merged.get("adminLevel") or 0)
+        # Lấy mức cao hơn giữa profile server và soldiers cache
+        if existing_level > current_level:
+            merged["adminLevel"] = existing_level
+        if sol.get("isAdmin") and not merged.get("isAdmin"):
+            merged["isAdmin"] = True
+
+    store.set_value("userProfile", merged)
+    new_level = int(merged.get("adminLevel") or 1)
+    existing_level = int((soldiers[idx].get("adminLevel") or 0) if idx is not None else 0)
     row = {
         "id": uid,
         "unitId": merged.get("unitId") or "",
@@ -162,8 +193,8 @@ def _hydrate_profile_after_login(creds: dict, login_username: str) -> None:
         "username": merged.get("username") or uname_raw,
         "phone": merged.get("phone") or "",
         "accountStatus": str(merged.get("accountStatus") or "active"),
-        "isAdmin": bool(merged.get("isAdmin")),
-        "adminLevel": int(merged.get("adminLevel") or 1),
+        "isAdmin": bool(merged.get("isAdmin")) or (existing_level >= 3),
+        "adminLevel": max(new_level, existing_level),
         "photoUrl": str(merged.get("photoUrl") or ""),
     }
     if idx is None:
@@ -188,20 +219,13 @@ def _hydrate_profile_after_login(creds: dict, login_username: str) -> None:
                 "adminLevel": int(merged.get("adminLevel") or 1),
                 "lastLoginAt": store.now_ms(),
                 "photoUrl": str(merged.get("photoUrl") or ""),
+                # KHÔNG ghi accountStatus ở đây — tránh ghi đè trạng thái duyệt
             },
         )
     except Exception:
         pass
 
-    # Đăng ký FCM Token nếu có
-    try:
-        import os
-        from app import fcm
-        fcm_token = os.environ.get("FCM_TOKEN")
-        if fcm_token and uid:
-            fcm.register_token(FS, uid, fcm_token)
-    except Exception:
-        pass
+    # FCM token được đăng ký sau khi app load xong qua _register_fcm_token_async()
 
 
 # ============================================================
@@ -293,6 +317,99 @@ def _close_dialog(page: ft.Page) -> None:
     for ctrl in list(page.overlay):
         if isinstance(ctrl, ft.AlertDialog) and getattr(ctrl, "open", False):
             ctrl.open = False
+    page.update()
+
+
+def open_image_viewer(page: ft.Page, url: str, title: str = "") -> None:
+    """Hiển thị ảnh toàn màn hình trong app, hỗ trợ zoom.
+    Bấm nút X hoặc bấm ngoài ảnh để đóng."""
+    overlay_ref: list = [None]
+
+    def _close(e=None):
+        ctrl = overlay_ref[0]
+        if ctrl is not None:
+            try:
+                page.overlay.remove(ctrl)
+                page.update()
+            except Exception:
+                pass
+
+    # Kích thước màn hình
+    pw = (getattr(page, "width", None) or
+          getattr(getattr(page, "window", None), "width", None) or 400)
+    ph = (getattr(page, "height", None) or
+          getattr(getattr(page, "window", None), "height", None) or 700)
+    pw = int(pw or 400)
+    ph = int(ph or 700)
+
+    # Ảnh vừa khung, dành phần trên cho nút đóng
+    img_w = pw - 8
+    img_h = ph - 60
+
+    img = ft.Image(src=url, width=img_w, height=img_h, fit=ft.ImageFit.CONTAIN)
+
+    # InteractiveViewer cho phép pinch-zoom (Flet ≥ 0.22)
+    try:
+        viewer = ft.InteractiveViewer(
+            min_scale=0.5,
+            max_scale=8.0,
+            clip_behavior=ft.ClipBehavior.NONE,
+            content=img,
+            width=img_w,
+            height=img_h,
+        )
+    except Exception:
+        viewer = img
+
+    ctrl = ft.Container(
+        width=pw,
+        height=ph,
+        bgcolor="#EE000000",
+        content=ft.Stack([
+            # Nền — bấm để đóng
+            ft.GestureDetector(
+                on_tap=_close,
+                content=ft.Container(width=pw, height=ph, bgcolor="transparent"),
+            ),
+            # Ảnh căn giữa
+            ft.Container(
+                content=viewer,
+                width=pw,
+                height=ph,
+                alignment=ft.alignment.center,
+                padding=ft.padding.only(top=46, bottom=4, left=4, right=4),
+            ),
+            # Nút đóng góc trên phải
+            ft.Container(
+                content=ft.IconButton(
+                    icon=ft.Icons.CLOSE,
+                    icon_color=ft.Colors.WHITE,
+                    icon_size=26,
+                    on_click=_close,
+                    tooltip="Đóng",
+                    style=ft.ButtonStyle(
+                        bgcolor=ft.Colors.with_opacity(0.45, ft.Colors.BLACK),
+                    ),
+                ),
+                alignment=ft.alignment.top_right,
+                padding=ft.padding.only(top=6, right=6),
+            ),
+            # Tiêu đề (nếu có)
+            *(
+                [ft.Container(
+                    content=ft.Text(title, color=ft.Colors.WHITE70, size=12,
+                                    max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
+                    alignment=ft.alignment.top_center,
+                    padding=ft.padding.only(top=14),
+                    width=pw - 80,
+                )]
+                if title else []
+            ),
+        ]),
+    )
+
+    overlay_ref[0] = ctrl
+    page.overlay.append(ctrl)
     page.update()
 # ───────────────────────────────────────────────────────────────────────────
 
@@ -444,33 +561,27 @@ class App:
         self.toast_snackbar: ft.SnackBar | None = None
         # cache "current view" để rebuild khi data đổi
         self.body = ft.Container(expand=True, bgcolor=BG2)
-        # Realtime sync: kéo dữ liệu từ Firestore mỗi 10s rồi refresh tab hiện tại
+        # Persistent nav/header boxes — chỉ update content, không rebuild frame
+        self._header_box = ft.Container()
+        self._nav_box = ft.Container()
+        self._layout_mode: str | None = None  # "desktop" | "mobile"
+        # Realtime sync: kéo dữ liệu từ Firestore mỗi 30s rồi refresh tab hiện tại
         self._realtime_stop = {"stop": False}
         self._start_realtime_sync()
 
     def _start_realtime_sync(self) -> None:
-        """Background thread sync app_data từ Firestore mỗi 10s.
-
-        CHỈ kéo dữ liệu vào cache, KHÔNG rebuild UI tự động (vì sẽ làm văng
-        người dùng khỏi sub-module / dialog đang mở). Khi user chuyển tab
-        hoặc mở module sẽ thấy data mới ngay.
-        """
+        """Background thread sync app_data từ Firestore mỗi 30s."""
         if not store.STORE.is_bound():
             return
 
+        stop_event = threading.Event()
+        self._realtime_stop["event"] = stop_event
+
         def loop():
-            while not self._realtime_stop["stop"]:
-                t = 0.0
-                while t < 30.0 and not self._realtime_stop["stop"]:
-                    time.sleep(0.5)
-                    t += 0.5
-                if self._realtime_stop["stop"]:
-                    return
+            while not stop_event.wait(timeout=30.0):
                 try:
                     store.STORE.sync_from_firestore()
                     store.STORE.flush_pending()
-                    # Refresh soldiers từ users/ — đảm bảo các tiện ích thấy
-                    # đúng danh sách quân nhân (loại bỏ acc đã xoá).
                     store.refresh_soldiers_from_users()
                 except Exception:
                     pass
@@ -498,15 +609,19 @@ class App:
 
     def stop_realtime_sync(self) -> None:
         self._realtime_stop["stop"] = True
+        ev = self._realtime_stop.get("event")
+        if ev is not None:
+            ev.set()
 
     # ---- TOAST ----
     def toast(self, msg: str) -> None:
-        self.page.snack_bar = ft.SnackBar(
+        sb = ft.SnackBar(
             content=ft.Text(msg, color=ft.Colors.WHITE, size=13, weight=ft.FontWeight.W_600),
             bgcolor=GREEN_DARK,
             duration=2200,
         )
-        self.page.snack_bar.open = True
+        self.page.overlay.append(sb)
+        sb.open = True
         self.page.update()
 
     def export_data_to_csv(self, filename_prefix: str, headers: list[str], rows: list[list]) -> None:
@@ -777,7 +892,7 @@ class App:
                 ft.TextButton("Đóng", on_click=lambda e: close_dialog()),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     # ---- BOTTOM NAV ----
     def bottom_nav(self) -> ft.Container:
@@ -1045,48 +1160,71 @@ class App:
             bgcolor=GREEN_DARK,
         )
 
-    def refresh(self) -> None:
+    def _detect_layout(self) -> str:
         import os
-        is_android = os.environ.get("ANDROID_ROOT") is not None or os.environ.get("ANDROID_DATA") is not None
-        is_desktop = (self.page.width >= 800) and not is_android
+        is_android = (os.environ.get("ANDROID_ROOT") is not None
+                      or os.environ.get("ANDROID_DATA") is not None)
+        return "mobile" if ((self.page.width or 0) < 800 or is_android) else "desktop"
 
-        # Bỏ mini chat FAB (bong bóng chat nổi — chỉ dành cho Android)
-        self.page.floating_action_button = None
-
-        if is_desktop:
-            # Layout kiểu Zalo Desktop: icon rail hẹp (64px) + nội dung
-            self.frame.controls = [
-                ft.Row(
-                    [
-                        self.sidebar_nav(),
-                        ft.Column(
-                            [
-                                self.header_for_tab(),
-                                ft.Container(content=self.body, expand=True, bgcolor=BG2),
-                            ],
-                            spacing=0,
-                            expand=True,
-                        ),
-                    ],
-                    spacing=0,
-                    expand=True,
-                )
-            ]
+    def _apply_nav(self, mode: str) -> None:
+        """Cập nhật _nav_box in-place theo mode hiện tại."""
+        if mode == "desktop":
+            nav = self.sidebar_nav()
+            self._nav_box.content = nav.content
+            self._nav_box.bgcolor = nav.bgcolor
+            self._nav_box.border = nav.border
+            self._nav_box.width = nav.width
+            self._nav_box.height = None
+            self._nav_box.expand = False
         else:
-            self.frame.controls = [
-                ft.SafeArea(
-                    content=ft.Column(
+            nav = self.bottom_nav()
+            self._nav_box.content = nav.content
+            self._nav_box.bgcolor = nav.bgcolor
+            self._nav_box.border = nav.border
+            self._nav_box.height = nav.height
+            self._nav_box.width = None
+            self._nav_box.expand = False
+
+    def refresh(self) -> None:
+        self.page.floating_action_button = None
+        mode = self._detect_layout()
+
+        if mode != self._layout_mode:
+            # Lần đầu hoặc resize vượt breakpoint → rebuild frame structure
+            self._layout_mode = mode
+            if mode == "desktop":
+                self.frame.controls = [
+                    ft.Row(
                         [
-                            self.header_for_tab(),
-                            self.body,
-                            self.bottom_nav(),
+                            self._nav_box,
+                            ft.Column(
+                                [
+                                    self._header_box,
+                                    ft.Container(content=self.body, expand=True, bgcolor=BG2),
+                                ],
+                                spacing=0,
+                                expand=True,
+                            ),
                         ],
                         spacing=0,
                         expand=True,
-                    ),
-                    expand=True,
-                )
-            ]
+                    )
+                ]
+            else:
+                self.frame.controls = [
+                    ft.SafeArea(
+                        content=ft.Column(
+                            [self._header_box, self.body, self._nav_box],
+                            spacing=0,
+                            expand=True,
+                        ),
+                        expand=True,
+                    )
+                ]
+
+        # Cập nhật header và nav in-place (không rebuild toàn bộ frame)
+        self._header_box.content = self.header_for_tab()
+        self._apply_nav(mode)
         self.page.update()
 
     def open_module_info(self, mod_id: str):
@@ -1153,7 +1291,7 @@ class App:
             
         page = self.page
         def close_dlg(_):
-            _close_dialog(page)
+            _close_dialog(self.page)
             
         _dlg = ft.AlertDialog(
             modal=True,
@@ -1176,7 +1314,7 @@ class App:
             ),
             actions=[ft.TextButton("Đã hiểu", on_click=close_dlg)],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def header_for_tab(self) -> ft.Control:
         oid = getattr(self, "overlay_soldier_id", None)
@@ -1242,11 +1380,14 @@ class App:
                        and c.get("deadline", 0) > store.now_ms())
 
         uname = str(profile.get("username") or "")
-        if _is_super_admin_username(uname) or bool(profile.get("isAdmin")):
+        if _is_super_admin_username(uname) or bool(profile.get("isAdmin")) or int(profile.get("adminLevel") or 0) >= 5:
             greet_main = "đ.c Admin 🎖"
         else:
             rank = (profile.get("rank") or "").strip()
-            name = profile.get("name") or "Không tên"
+            name = (profile.get("name") or "").strip()
+            # Nếu chưa có tên (đang load), dùng username tạm
+            if not name:
+                name = uname or "..."
             rank_prefix = f"{rank} " if rank else ""
             greet_main = f"đ.c {rank_prefix}{name} 🫡"
 
@@ -1373,12 +1514,12 @@ class App:
                 title=ft.Text("Chọn đơn vị", size=15, weight=ft.FontWeight.BOLD),
                 content=ft.Container(content=ft.Column([dd], tight=True), width=340),
                 actions=[
-                    ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(page)),
+                    ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(self.page)),
                     ft.ElevatedButton("Áp dụng", on_click=submit,
                                       bgcolor=GREEN_MID, color=ft.Colors.WHITE),
                 ],
             )
-            _show_dialog(page, _dlg)
+            _show_dialog(self.page, _dlg)
 
         # ===== Ca trực hôm nay — chỉ ca của cơ quan/đơn vị mình HOẶC cá nhân mình =====
         import datetime
@@ -1454,6 +1595,7 @@ class App:
             label_sub = "Không có yêu cầu"
 
         def _open_approval_menu():
+            page = self.page
             if total_pending == 0:
                 self.toast("🎉 Bạn không có yêu cầu nào chờ phê duyệt!")
                 return
@@ -1462,7 +1604,7 @@ class App:
 
             def make_opt(icon, text, count, on_click_action):
                 def click_handler(e):
-                    _close_dialog(page)
+                    _close_dialog(self.page)
                     on_click_action()
 
                 return ft.Container(
@@ -1505,10 +1647,10 @@ class App:
                     width=320
                 ),
                 actions=[
-                    ft.TextButton("Đóng", on_click=lambda e: _close_dialog(page))
+                    ft.TextButton("Đóng", on_click=lambda e: _close_dialog(self.page))
                 ]
             )
-            _show_dialog(page, _dlg)
+            _show_dialog(self.page, _dlg)
 
         stats = ft.Container(
             content=ft.Column(
@@ -1539,7 +1681,13 @@ class App:
 
         # Notifications block
         def notif_row(n: dict) -> ft.Container:
-            color = {"urgent": RED, "f47": BLUE, "unit": AMBER, "success": GREEN_MID}.get(n["type"], "#999")
+            color = {"urgent": RED, "f47": BLUE, "unit": AMBER, "success": GREEN_MID,
+                     "ctdctct": GREEN_DARK, "guest": "#8855cc", "warning": AMBER}.get(n["type"], "#999")
+            _sender = (n.get("senderName") or "").strip()
+            _meta_parts = []
+            if _sender:
+                _meta_parts.append(f"👤 {_sender}")
+            _meta_parts.append(time_ago(n["at"]))
             return ft.Container(
                 content=ft.Row(
                     [
@@ -1550,7 +1698,7 @@ class App:
                                 ft.Text(n["title"], size=13, color=TEXT,
                                         weight=ft.FontWeight.W_700 if not n["read"] else ft.FontWeight.W_500),
                                 ft.Text(n["desc"], size=11, color=TEXT_MUTED, max_lines=2),
-                                ft.Text(time_ago(n["at"]), size=10, color=TEXT_MUTED),
+                                ft.Text("  •  ".join(_meta_parts), size=10, color=TEXT_MUTED),
                             ],
                             spacing=2, expand=True, tight=True,
                         ),
@@ -1584,7 +1732,107 @@ class App:
             padding=ft.padding.symmetric(horizontal=12, vertical=10),
         )
 
-        return ft.ListView(controls=[hero, stats, notif_block], expand=True, padding=0)
+        # ===== Banner chiến dịch F47 đang live =====
+        live_camps = [c for c in f47
+                      if c.get("status") == "live"
+                      and c.get("deadline", 0) > store.now_ms()]
+
+        def _f47_banner(c: dict) -> ft.Container:
+            now_ms_val = store.now_ms()
+            left = c.get("deadline", 0) - now_ms_val
+            h, rem = divmod(max(left, 0), 3600_000)
+            m, _ = divmod(rem, 60_000)
+            cd = f"{h:02d}h {m:02d}m" if left > 0 else "Hết giờ"
+            done = len(c.get("submissions") or {})
+            total = len(c.get("members") or [])
+            pct = int(done / total * 100) if total else 0
+            c_type = c.get("campaignType") or "Chiến dịch"
+            return ft.Container(
+                content=ft.Column([
+                    ft.Row([
+                        ft.Container(
+                            content=ft.Text(c_type, size=10, color=ft.Colors.WHITE,
+                                            weight=ft.FontWeight.BOLD),
+                            bgcolor=RED, border_radius=4,
+                            padding=ft.padding.symmetric(horizontal=8, vertical=3),
+                        ),
+                        ft.Container(
+                            content=ft.Row([
+                                ft.Container(width=6, height=6, bgcolor=RED,
+                                             border_radius=3),
+                                ft.Text("LIVE", size=10, color=RED,
+                                        weight=ft.FontWeight.BOLD),
+                            ], spacing=4, tight=True),
+                        ),
+                        ft.Container(expand=True),
+                        ft.Text(f"⏱ {cd}", size=11, color=AMBER,
+                                weight=ft.FontWeight.BOLD),
+                    ], vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
+                    ft.Text(c.get("title", ""), size=14, weight=ft.FontWeight.BOLD,
+                            color=TEXT, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
+                    ft.Text(c.get("desc", ""), size=11, color=TEXT_MUTED,
+                            max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
+                    ft.Row([
+                        ft.Column([
+                            ft.ProgressBar(value=pct / 100, color=GREEN_MID,
+                                           bgcolor=BORDER, height=6,
+                                           border_radius=3, expand=True),
+                        ], expand=True, tight=True),
+                        ft.Text(f"{done}/{total}", size=11, color=TEXT_MUTED,
+                                weight=ft.FontWeight.BOLD),
+                    ], spacing=8, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                    ft.Row([
+                        ft.ElevatedButton(
+                            "Xem chiến dịch →",
+                            on_click=lambda e, _c=c: (
+                                self.open_module("f47"),
+                                self.f47_open_campaign_detail(_c),
+                            ),
+                            bgcolor=GREEN_DARK, color=ft.Colors.WHITE,
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=8),
+                                padding=ft.padding.symmetric(horizontal=16, vertical=8),
+                            ),
+                        ),
+                    ], alignment=ft.MainAxisAlignment.END),
+                ], spacing=8),
+                bgcolor=BG,
+                border=ft.border.all(1.5, RED),
+                border_radius=12,
+                padding=14,
+                margin=ft.padding.symmetric(horizontal=12, vertical=4),
+                on_click=lambda e, _c=c: (
+                    self.open_module("f47"),
+                    self.f47_open_campaign_detail(_c),
+                ),
+                ink=True,
+            )
+
+        f47_section = ft.Column(
+            [
+                ft.Container(
+                    content=ft.Row([
+                        ft.Text("🛡 Chiến dịch đang phát động",
+                                size=13, weight=ft.FontWeight.BOLD, expand=True),
+                        ft.TextButton(
+                            "Xem tất cả ›",
+                            on_click=lambda e: self.open_module("f47"),
+                            style=ft.ButtonStyle(color=GREEN_MID),
+                        ),
+                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                    padding=ft.padding.only(left=12, right=4, top=10, bottom=2),
+                ),
+                *[_f47_banner(c) for c in live_camps[:3]],
+            ],
+            spacing=0,
+        ) if live_camps else ft.Container()
+
+        controls = [hero]
+        if live_camps:
+            controls.append(f47_section)
+        controls += [stats, notif_block]
+
+        return ft.ListView(controls=controls, expand=True, padding=0)
 
     def handle_notif_click(self, n: dict) -> None:
         # Mark read trên ALL notifs (không dùng filtered list để khỏi mất ngữ cảnh)
@@ -1805,6 +2053,23 @@ class App:
         else:
             rooms = rooms_all
 
+        # Desktop detection (dùng cho 2-pane layout)
+        import os as _os_chat
+        _is_android = (_os_chat.environ.get("ANDROID_ROOT") is not None
+                       or _os_chat.environ.get("ANDROID_DATA") is not None)
+        is_desktop = (self.page.width >= 800) and not _is_android
+
+        # Phòng đang được chọn (chỉ dùng trên desktop)
+        _sel_room = getattr(self, "chat_selected_room", None)
+        _sel_rid = _sel_room[0] if _sel_room else None
+        # Nếu phòng đang chọn đã bị ẩn/xóa → tự động bỏ chọn
+        if _sel_rid and is_desktop:
+            _sel_still_visible = any(r[0] == _sel_rid for r in rooms_all)
+            if not _sel_still_visible:
+                self.chat_selected_room = None
+                _sel_room = None
+                _sel_rid = None
+
         def chat_item(room) -> ft.Container:
             rid, name, sub, when, unread, is_group, _rtype = room[:7]
             online_dm = room[7] if len(room) > 7 else False
@@ -1848,6 +2113,7 @@ class App:
                 if (online_dm and not is_group)
                 else avatar_circle
             )
+            is_selected = is_desktop and (rid == _sel_rid)
             return ft.Container(
                 content=ft.Row(
                     [
@@ -1855,8 +2121,9 @@ class App:
                         ft.Column(
                             [
                                 ft.Row(
-                                    [ft.Text(name, size=14, weight=ft.FontWeight.W_700, expand=True),
-                                     ft.Text(when, size=11, color=TEXT_MUTED)],
+                                    [ft.Text(name, size=14, weight=ft.FontWeight.W_700, expand=True,
+                                             max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
+                                     ft.Text(when, size=11, color=TEXT_MUTED, no_wrap=True)],
                                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                 ),
                                 ft.Row(
@@ -1865,7 +2132,6 @@ class App:
                                 ),
                             ],
                             expand=True, spacing=2, tight=True,
-                            # Vùng cột giữa = vùng click mở chat
                         ),
                         ft.IconButton(
                             ft.Icons.MORE_VERT, icon_size=18,
@@ -1876,7 +2142,8 @@ class App:
                     spacing=10, vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
                 padding=ft.padding.symmetric(horizontal=12, vertical=10),
-                bgcolor=BG, border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
+                bgcolor="#e8f5e9" if is_selected else BG,
+                border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
                 on_click=lambda e, r=room: self.open_chat_room(r),
                 ink=True,
             )
@@ -1927,8 +2194,9 @@ class App:
                             selected_index=selected_idx,
                             on_change=on_chat_tab_changed,
                             tabs=[ft.Tab(text=label) for label, _ in tab_kinds],
+                            height=46,
                         ),
-                        expand=True,
+                        expand=True, height=46,
                     ),
                     ft.IconButton(
                         ft.Icons.SEARCH_OFF if search_open else ft.Icons.SEARCH,
@@ -1969,31 +2237,172 @@ class App:
             )
             header_controls.append(search_input)
 
-        list_view = ft.ListView(
-            controls=header_controls + [chat_item(r) for r in rooms],
-            expand=True,
-            padding=0,
-        )
+        room_items = [chat_item(r) for r in rooms]
 
-        # FAB nhỏ góc phải dưới (chỉ trong tab tin nhắn)
-        fab = ft.Container(
-            content=ft.FloatingActionButton(
-                icon=ft.Icons.GROUP_ADD if hasattr(ft.Icons, "GROUP_ADD") else ft.Icons.ADD,
-                bgcolor=RED,
-                foreground_color=ft.Colors.WHITE,
-                tooltip="Tạo nhóm chat",
-                on_click=lambda e: self.open_create_group_dialog(),
-            ),
-            right=16,
-            bottom=16,
-        )
+        if is_desktop:
+            # ── Desktop: layout 2 cột kiểu Zalo ──────────────────────────
+            # Cột trái: filter tabs + search + danh sách phòng
+            left_header_controls: list[ft.Control] = []
 
-        return ft.Stack([list_view, fab], expand=True)
+            # Filter bar + nút tạo nhóm
+            left_filter_bar = ft.Container(
+                content=ft.Row(
+                    [
+                        ft.Container(
+                            content=ft.Tabs(
+                                selected_index=selected_idx,
+                                on_change=on_chat_tab_changed,
+                                tabs=[ft.Tab(text=label) for label, _ in tab_kinds],
+                                height=46,
+                            ),
+                            expand=True, height=46,
+                        ),
+                        ft.IconButton(
+                            ft.Icons.SEARCH_OFF if search_open else ft.Icons.SEARCH,
+                            tooltip="Đóng tìm kiếm" if search_open else "Tìm kiếm",
+                            icon_color=GREEN_DARK,
+                            on_click=toggle_search,
+                        ),
+                        ft.IconButton(
+                            ft.Icons.GROUP_ADD if hasattr(ft.Icons, "GROUP_ADD") else ft.Icons.ADD,
+                            tooltip="Tạo nhóm chat",
+                            icon_color=GREEN_DARK,
+                            on_click=lambda e: self.open_create_group_dialog(),
+                        ),
+                    ],
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+                padding=ft.padding.only(left=6, right=2, top=4, bottom=4),
+                bgcolor=BG,
+                border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
+            )
+            left_header_controls.append(left_filter_bar)
+
+            if search_open:
+                left_header_controls.append(ft.Container(
+                    content=ft.TextField(
+                        prefix_icon=ft.Icons.SEARCH,
+                        hint_text="Tìm cuộc trò chuyện...",
+                        border=ft.InputBorder.NONE, height=44, dense=True,
+                        filled=True, bgcolor=BG2, border_radius=22,
+                        value=search_query,
+                        on_change=on_search_change,
+                        autofocus=True,
+                    ),
+                    padding=ft.padding.symmetric(horizontal=10, vertical=8),
+                    bgcolor=BG,
+                    border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
+                ))
+
+            if room_items:
+                left_list_content = ft.Column(
+                    controls=room_items,
+                    scroll=ft.ScrollMode.AUTO,
+                    spacing=0,
+                    expand=True,
+                    horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+                )
+            else:
+                left_list_content = ft.Column(
+                    controls=[
+                        ft.Container(
+                            content=ft.Text("Không có cuộc trò chuyện nào",
+                                            color=TEXT_MUTED, size=13,
+                                            text_align=ft.TextAlign.CENTER),
+                            padding=ft.padding.symmetric(vertical=40),
+                            alignment=ft.alignment.center,
+                        )
+                    ],
+                    expand=True,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+
+            left_pane = ft.Container(
+                content=ft.Column(
+                    left_header_controls + [left_list_content],
+                    spacing=0,
+                    expand=True,
+                ),
+                width=340,
+                bgcolor=BG,
+                border=ft.border.only(right=ft.BorderSide(1, BORDER)),
+            )
+
+            # Cột phải: chat đang mở hoặc placeholder
+            if _sel_room:
+                right_pane = self.view_chat_detail(
+                    _sel_room[0], _sel_room[1], _sel_room[2],
+                    show_back=False,
+                )
+            else:
+                right_pane = ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.Icon(ft.Icons.CHAT_BUBBLE_OUTLINE, size=64, color=TEXT_MUTED),
+                            ft.Container(height=16),
+                            ft.Text("Chọn cuộc trò chuyện để bắt đầu",
+                                    size=15, color=TEXT_MUTED,
+                                    text_align=ft.TextAlign.CENTER),
+                            ft.Container(height=8),
+                            ft.Text("Hoặc tạo nhóm mới bằng nút  +  ở trên",
+                                    size=12, color=TEXT_MUTED,
+                                    text_align=ft.TextAlign.CENTER),
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                    expand=True,
+                    alignment=ft.alignment.center,
+                    bgcolor=BG2,
+                )
+
+            return ft.Row(
+                [left_pane, right_pane],
+                spacing=0,
+                expand=True,
+                vertical_alignment=ft.CrossAxisAlignment.STRETCH,
+            )
+
+        else:
+            # ── Mobile: layout 1 cột (giữ nguyên) ────────────────────────
+            list_view = ft.ListView(
+                controls=header_controls + room_items,
+                expand=True,
+                padding=0,
+            )
+            fab = ft.Container(
+                content=ft.FloatingActionButton(
+                    icon=ft.Icons.GROUP_ADD if hasattr(ft.Icons, "GROUP_ADD") else ft.Icons.ADD,
+                    bgcolor=RED,
+                    foreground_color=ft.Colors.WHITE,
+                    tooltip="Tạo nhóm chat",
+                    on_click=lambda e: self.open_create_group_dialog(),
+                ),
+                right=16,
+                bottom=16,
+            )
+            return ft.Stack([list_view, fab], expand=True)
 
     def open_chat_room(self, room) -> None:
         rid, name, sub, *_ = room
-        self.body.content = self.view_chat_detail(rid, name, sub)
-        self.refresh()
+        import os as _os_ocr
+        _is_android_ocr = (_os_ocr.environ.get("ANDROID_ROOT") is not None
+                           or _os_ocr.environ.get("ANDROID_DATA") is not None)
+        is_desktop = (self.page.width >= 800) and not _is_android_ocr
+        if is_desktop:
+            # Dừng listener cũ trước khi rebuild
+            prev_stop = getattr(self, "_chat_listener_stop", None)
+            if callable(prev_stop):
+                try:
+                    prev_stop()
+                except Exception:
+                    pass
+                self._chat_listener_stop = None
+            self.chat_selected_room = room
+            self.body.content = self.view_chat()
+            self.refresh()
+        else:
+            self.body.content = self.view_chat_detail(rid, name, sub)
+            self.refresh()
 
     def open_create_group_dialog(self) -> None:
         """Tạo phòng chat dạng nhóm và đưa vào `chat_rooms` để tab Tin nhắn hiển thị."""
@@ -2105,7 +2514,7 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: (_close_dialog(page), page.update()),
+                    on_click=lambda e: (_close_dialog(self.page), page.update()),
                 ),
                 ft.ElevatedButton(
                     "Tạo nhóm",
@@ -2115,9 +2524,9 @@ class App:
                 ),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
-    def view_chat_detail(self, rid: str, name: str, sub: str) -> ft.Control:
+    def view_chat_detail(self, rid: str, name: str, sub: str, show_back: bool = True) -> ft.Control:
         # Huỷ listener cũ nếu có
         prev_stop = getattr(self, "_chat_listener_stop", None)
         if callable(prev_stop):
@@ -2203,7 +2612,7 @@ class App:
         def clear_history(_):
             def confirm_clear(e):
                 store.set_value(f"chat_messages_{rid}", [])
-                _close_dialog(page)
+                _close_dialog(self.page)
                 self.toast("🧹 Đã xóa lịch sử trò chuyện cục bộ!")
                 render_messages([])
 
@@ -2211,17 +2620,18 @@ class App:
                 title=ft.Text("Xóa lịch sử?", size=15, weight=ft.FontWeight.BOLD),
                 content=ft.Text("Bạn có chắc chắn muốn xóa toàn bộ lịch sử tin nhắn của cuộc trò chuyện này không?"),
                 actions=[
-                    ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(page)),
+                    ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(self.page)),
                     ft.ElevatedButton("Xóa", on_click=confirm_clear, bgcolor=RED, color=ft.Colors.WHITE)
                 ]
             )
-            _show_dialog(page, _dlg)
+            _show_dialog(self.page, _dlg)
 
         def leave_group(_):
             rooms = store.get("chat_rooms", store.seed_chat_rooms)
             rooms = [r for r in rooms if r.get("id") != rid]
             store.set_value("chat_rooms", rooms)
             self.toast("Đã rời/giải tán nhóm chat!")
+            self.chat_selected_room = None
             self.set_tab("chat")
 
         # Settings buttons
@@ -2297,7 +2707,7 @@ class App:
                         border_radius=6,
                         border=ft.border.all(1, BORDER),
                         clip_behavior=ft.ClipBehavior.HARD_EDGE,
-                        on_click=lambda e, url=img_url: self.page.launch_url(url),
+                        on_click=lambda e, url=img_url, nm=img["name"]: open_image_viewer(self.page, url, nm),
                         tooltip=img["name"],
                         content=ft.Stack([
                             ft.Image(src=img_url, width=80, height=80, fit=ft.ImageFit.COVER),
@@ -2419,7 +2829,7 @@ class App:
                                 ft.Text(f"📎 {file_name}", color=text_color, size=11, italic=True),
                                 ft.GestureDetector(
                                     content=ft.Image(src=url, max_width=240, border_radius=8, fit=ft.ImageFit.CONTAIN),
-                                    on_tap=lambda e: self.page.launch_url(url)
+                                    on_tap=lambda e, u=url, n=file_name: open_image_viewer(self.page, u, n)
                                 )
                             ], spacing=4)
                         elif ext in ("mp4", "mov", "avi", "webm", "3gp"):
@@ -2556,13 +2966,16 @@ class App:
             def worker():
                 for f in e.files:
                     try:
-                        if not f.path:
-                            continue
                         folder = f"chat/{rid}/{my_uid}"
                         remote = fb_storage.make_remote_path(folder, f.name)
-                        res = fb_storage.upload_file(f.path, remote, AUTH_STATE["idToken"])
+                        if f.path:
+                            res = fb_storage.upload_file(f.path, remote, AUTH_STATE["idToken"])
+                        elif f.bytes:
+                            res = fb_storage.upload_data(remote, f.bytes, AUTH_STATE["idToken"], f.name)
+                        else:
+                            continue
                         url = res["downloadURL"]
-                        
+
                         msg_text = f"📎 [{f.name}] {url}"
                         store.send_chat_message(rid, my_uid, my_name, msg_text)
                     except Exception as ex_e:
@@ -2573,10 +2986,6 @@ class App:
         chat_picker = ft.FilePicker(on_result=on_chat_file_picked)
         if chat_picker not in self.page.overlay:
             self.page.overlay.append(chat_picker)
-            try:
-                self.page.update()
-            except Exception:
-                pass
 
         def room_meta() -> tuple[list, dict]:
             raw = store.get("chat_rooms", store.seed_chat_rooms)
@@ -2600,7 +3009,7 @@ class App:
                 except Exception:
                     pass
                 try:
-                    fresh = store.fetch_chat_messages(rid, limit=200)
+                    fresh = store.fetch_chat_messages(rid, limit=50)
                     render_messages(fresh)
                 except Exception:
                     pass
@@ -2615,7 +3024,7 @@ class App:
                     return
                 self.toast("Đã xóa tin nhắn")
                 try:
-                    fresh = store.fetch_chat_messages(rid, limit=200)
+                    fresh = store.fetch_chat_messages(rid, limit=50)
                     render_messages(fresh)
                 except Exception:
                     pass
@@ -2726,7 +3135,7 @@ class App:
                     except Exception:
                         pass
                     try:
-                        fr = store.fetch_chat_messages(rid, limit=200)
+                        fr = store.fetch_chat_messages(rid, limit=50)
                         render_messages(fr)
                     except Exception:
                         pass
@@ -2759,91 +3168,122 @@ class App:
                 if not store.delete_chat_message(rid, mid_sw, str(my_uid)):
                     self.toast("Không xóa được tin nhắn")
                     try:
-                        fr = store.fetch_chat_messages(rid, limit=200)
+                        fr = store.fetch_chat_messages(rid, limit=50)
                         render_messages(fr)
                     except Exception:
                         pass
                     return
                 self.toast("Đã xóa tin nhắn")
                 try:
-                    fr = store.fetch_chat_messages(rid, limit=200)
+                    fr = store.fetch_chat_messages(rid, limit=50)
                     render_messages(fr)
                 except Exception:
                     pass
 
             return _h
 
-        def render_messages(items: list[dict]):
-            # Giữ phần header "Hôm nay ..."
-            header = msgs.controls[0] if msgs.controls else None
-            new_controls = [header] if header else []
+        # Theo dõi trạng thái render để tránh rebuild thừa
+        _render_state: dict = {"ids": [], "pins": [], "sig": ""}
+
+        def _build_msg_ctrl(m: dict, members: list, last_read: dict,
+                            pins_l: list, is_last: bool) -> ft.Control:
+            txt = m.get("text", "") or ""
+            mid = str(m.get("id") or m.get("_id") or "").strip()
+            pinned = bool(mid and mid in pins_l)
+            if str(m.get("senderId") or "") == str(my_uid):
+                inner = bubble_me_inner(txt, my_msg_footer(m, members, last_read), pinned)
+                row_me = ft.Row(
+                    [ft.Container(expand=True),
+                     ft.Row([msg_menu(m), inner], spacing=2,
+                            vertical_alignment=ft.CrossAxisAlignment.END)],
+                    vertical_alignment=ft.CrossAxisAlignment.END,
+                )
+                ctrl = (ft.Dismissible(
+                    content=ft.Container(content=row_me, expand=True),
+                    background=dismiss_bg_delete(),
+                    secondary_background=dismiss_bg_pin(),
+                    dismiss_direction=ft.DismissDirection.HORIZONTAL,
+                    data=mid,
+                    on_confirm_dismiss=on_confirm_swipe(mid, True),
+                    on_dismiss=on_dismiss_swipe(mid, True),
+                ) if mid else row_me)
+            else:
+                inner = bubble_them_inner(txt, m.get("senderName", ""), pinned)
+                row_them = ft.Row([inner, msg_menu(m)], spacing=2,
+                                  vertical_alignment=ft.CrossAxisAlignment.END)
+                ctrl = (ft.Dismissible(
+                    content=ft.Container(content=row_them, expand=True),
+                    secondary_background=dismiss_bg_pin(),
+                    dismiss_direction=ft.DismissDirection.START_TO_END,
+                    data=mid,
+                    on_confirm_dismiss=on_confirm_swipe(mid, False),
+                ) if mid else row_them)
+            if is_last:
+                ctrl.key = "last_msg"
+            return ctrl
+
+        def render_messages(items: list[dict], *, force_full: bool = False):
             members, last_read = room_meta()
             pins_l = room_pinned_ids()
             ordered = store.sort_chat_messages_with_pins(items, pins_l)
-            for i, m in enumerate(ordered):
-                txt = m.get("text", "") or ""
-                mid = str(m.get("id") or m.get("_id") or "").strip()
-                pinned = bool(mid and mid in pins_l)
-                if str(m.get("senderId") or "") == str(my_uid):
-                    inner = bubble_me_inner(
-                        txt, my_msg_footer(m, members, last_read), pinned,
-                    )
-                    row_me = ft.Row(
-                        [
-                            ft.Container(expand=True),
-                            ft.Row(
-                                [msg_menu(m), inner],
-                                spacing=2,
-                                vertical_alignment=ft.CrossAxisAlignment.END,
-                            ),
-                        ],
-                        vertical_alignment=ft.CrossAxisAlignment.END,
-                    )
-                    if mid:
-                        ctrl = ft.Dismissible(
-                            content=ft.Container(content=row_me, expand=True),
-                            background=dismiss_bg_delete(),
-                            secondary_background=dismiss_bg_pin(),
-                            dismiss_direction=ft.DismissDirection.HORIZONTAL,
-                            data=mid,
-                            on_confirm_dismiss=on_confirm_swipe(mid, True),
-                            on_dismiss=on_dismiss_swipe(mid, True),
-                        )
-                    else:
-                        ctrl = row_me
-                else:
-                    inner = bubble_them_inner(
-                        txt, m.get("senderName", ""), pinned,
-                    )
-                    row_them = ft.Row(
-                        [inner, msg_menu(m)],
-                        spacing=2,
-                        vertical_alignment=ft.CrossAxisAlignment.END,
-                    )
-                    if mid:
-                        ctrl = ft.Dismissible(
-                            content=ft.Container(content=row_them, expand=True),
-                            secondary_background=dismiss_bg_pin(),
-                            dismiss_direction=ft.DismissDirection.START_TO_END,
-                            data=mid,
-                            on_confirm_dismiss=on_confirm_swipe(mid, False),
-                        )
-                    else:
-                        ctrl = row_them
+            new_ids = [str(m.get("id") or m.get("_id") or "") for m in ordered]
 
-                if i == len(ordered) - 1:
-                    ctrl.key = "last_msg"
-                new_controls.append(ctrl)
+            # Xóa optimistic bubble nếu có (tránh hiện 2 lần)
+            msgs.controls = [c for c in msgs.controls
+                             if getattr(c, "key", None) != "optimistic_msg"]
 
-            prev_len = len(msgs.controls)
-            msgs.controls = new_controls
+            # Signature guard — skip rebuild if nothing changed
+            sig = "|".join(new_ids) + "||" + ",".join(pins_l)
+            if not force_full and sig == _render_state["sig"]:
+                return
+            _render_state["sig"] = sig
+
+            prev_ids = _render_state["ids"]
+            prev_pins = _render_state["pins"]
+            pins_changed = pins_l != prev_pins
+
+            # Incremental append: khi chỉ có tin mới thêm vào cuối, không cần rebuild toàn bộ
+            can_append = (
+                not force_full
+                and not pins_changed
+                and len(new_ids) > len(prev_ids)
+                and new_ids[: len(prev_ids)] == prev_ids
+            )
+
+            if can_append:
+                new_tail = ordered[len(prev_ids):]
+                # Xóa key "last_msg" khỏi tin cuối cũ
+                if msgs.controls:
+                    try:
+                        msgs.controls[-1].key = None
+                    except Exception:
+                        pass
+                for i, m in enumerate(new_tail):
+                    ctrl = _build_msg_ctrl(m, members, last_read, pins_l,
+                                           is_last=(i == len(new_tail) - 1))
+                    msgs.controls.append(ctrl)
+            else:
+                # Full rebuild
+                header = msgs.controls[0] if msgs.controls else None
+                new_controls = [header] if header else []
+                for i, m in enumerate(ordered):
+                    new_controls.append(
+                        _build_msg_ctrl(m, members, last_read, pins_l,
+                                        is_last=(i == len(ordered) - 1))
+                    )
+                msgs.controls = new_controls
+
+            _render_state["ids"] = new_ids
+            _render_state["pins"] = pins_l
+
             try:
                 update_sidebar_attachments(items)
             except Exception:
                 pass
+            grew = len(new_ids) > len(prev_ids)
             try:
                 self.page.update()
-                if len(new_controls) > prev_len:
+                if grew:
                     msgs.scroll_to(key="last_msg", duration=200)
             except Exception:
                 pass
@@ -2853,10 +3293,10 @@ class App:
             def _initial_load():
                 try:
                     store.refresh_chat_room_meta(rid)
-                    initial = store.fetch_chat_messages(rid, limit=200)
+                    initial = store.fetch_chat_messages(rid, limit=50)
                     def _draw():
                         try:
-                            render_messages(initial)
+                            render_messages(initial, force_full=True)
                         except Exception:
                             pass
                     if hasattr(self.page, "run_thread"):
@@ -2868,23 +3308,19 @@ class App:
 
             threading.Thread(target=_initial_load, daemon=True).start()
 
-            # Đăng ký lắng nghe realtime (polling 2s)
+            # Đăng ký lắng nghe realtime — bỏ refresh_chat_room_meta khỏi hot path
             try:
                 def on_chat_messages(items: list[dict]):
-                    try:
-                        store.refresh_chat_room_meta(rid)
-                    except Exception:
-                        pass
                     render_messages(items)
-                    if self.tab == "chat" and len(self.frame.controls) > 2:
+                    if self.tab == "chat":
                         try:
-                            self.frame.controls[2] = self.bottom_nav()
+                            self._apply_nav(self._detect_layout())
                             self.page.update()
                         except Exception:
                             pass
 
                 self._chat_listener_stop = store.listen_chat_messages(
-                    rid, on_chat_messages, interval=2.0,
+                    rid, on_chat_messages, interval=5.0,
                 )
             except Exception:
                 self._chat_listener_stop = None
@@ -2894,24 +3330,34 @@ class App:
             if not txt:
                 return
             msg_input.value = ""
-            # Gửi lên Firestore
+            # Hiển thị tin ngay lập tức (optimistic)
+            if msgs.controls:
+                try:
+                    msgs.controls[-1].key = None
+                except Exception:
+                    pass
+            opt_inner = bubble_me_inner(txt, "Đang gửi...", False)
+            opt_row = ft.Row(
+                [ft.Container(expand=True),
+                 ft.Row([opt_inner], spacing=2,
+                        vertical_alignment=ft.CrossAxisAlignment.END)],
+                vertical_alignment=ft.CrossAxisAlignment.END,
+                key="optimistic_msg",
+            )
+            msgs.controls.append(opt_row)
+            try:
+                self.page.update()
+                msgs.scroll_to(key="optimistic_msg", duration=150)
+            except Exception:
+                pass
+
+            # Gửi lên server trong nền — listener sẽ reconcile sau
             if store.STORE.is_bound():
                 def worker():
                     try:
-                        msg = store.send_chat_message(rid, my_uid, my_name, txt)
-                        if msg:
-                            # Fetch messages updated to reflect immediately
-                            fr = store.fetch_chat_messages(rid, limit=200)
-                            def _update():
-                                try:
-                                    render_messages(fr)
-                                    msgs.scroll_to(key="last_msg", duration=200)
-                                except Exception:
-                                    pass
-                            if hasattr(self.page, "run_thread"):
-                                self.page.run_thread(_update)
-                            else:
-                                _update()
+                        store.send_chat_message(rid, my_uid, my_name, txt)
+                        # Xóa sig để lần poll tiếp theo sẽ rebuild full (xóa optimistic)
+                        _render_state["sig"] = ""
                     except Exception:
                         pass
                 threading.Thread(target=worker, daemon=True).start()
@@ -2925,8 +3371,11 @@ class App:
                 ft.Container(
                     content=ft.Row(
                         [
-                            ft.IconButton(ft.Icons.ARROW_BACK,
-                                          on_click=lambda e: self.set_tab("chat")),
+                            *(
+                                [ft.IconButton(ft.Icons.ARROW_BACK,
+                                               on_click=lambda e: self.set_tab("chat"))]
+                                if show_back else []
+                            ),
                             ft.Column([ft.Text(name, size=15, weight=ft.FontWeight.BOLD),
                                        ft.Text(sub, size=11, color=TEXT_MUTED)],
                                       spacing=0, expand=True, tight=True),
@@ -2973,9 +3422,14 @@ class App:
     # ============================================================
 
     def view_utilities(self) -> ft.Control:
+        f47_camps = store.get("f47Campaigns", store.seed_f47) or []
+        live_f47 = sum(1 for c in f47_camps if c.get("status") == "live")
+        f47_badge = f"{live_f47} đang chạy" if live_f47 > 0 else None
+        f47_badge_color = RED if live_f47 > 0 else None
+
         modules = [
             ("CHỨC NĂNG CHÍNH", [
-                ("f47", "🛡", "Lực lượng 47", "2 đang chạy", RED),
+                ("f47", "🛡", "Lực lượng 47", f47_badge, f47_badge_color),
                 ("ctdctct", "📖", "CTĐ-CTCT", "Mới", GREEN_MID),
                 ("hcqs", "⚔️", "HC - Quân sự", "Mới", GREEN_MID),
                 ("pttd", "🚩", "Phong trào TĐ", None, None),
@@ -3286,13 +3740,17 @@ class App:
                     controls.extend(cbs)
                     controls.append(ft.Divider(height=1))
 
+                _bs_ref1 = [None]
+
                 def _close():
-                    page.bottom_sheet.open = False
+                    if _bs_ref1[0]:
+                        _bs_ref1[0].open = False
                     page.update()
 
                 def _save(ev2):
                     vong_name = data.get("vong", "")
                     date = e.get("date_str", "")
+                    _assigner = store.get("userProfile", store.seed_user_profile).get("name") or "Chỉ huy"
                     for ci, cbs in ca_cbs.items():
                         selected = [cb.data for cb in cbs if cb.value]
                         if selected:
@@ -3300,14 +3758,15 @@ class App:
                             for pid in selected:
                                 store.push_notif("unit", "🛡 Bạn được cắt gác",
                                                  f"{vong_name} • {all_ca[ci]['time']} • {date}",
-                                                 "schedule", target_uid=pid)
+                                                 "schedule", target_uid=pid,
+                                                 sender_name=_assigner)
                     store.set_value("scheduleEntries", all_entries)
                     _close()
                     self.toast("✅ Đã phân người")
                     self.body.content = self.module_schedule()
                     self.refresh()
 
-                page.bottom_sheet = ft.BottomSheet(
+                _bs1 = ft.BottomSheet(
                     content=ft.Container(
                         content=ft.Column([
                             ft.Row([
@@ -3323,14 +3782,18 @@ class App:
                     ),
                     open=True,
                 )
+                _bs_ref1[0] = _bs1
+                page.overlay.append(_bs1)
                 page.update()
 
             def _approve(ev):
+                _approver_name = store.get("userProfile", store.seed_user_profile).get("name") or "Chỉ huy"
                 e["status"] = "approved"
                 store.set_value("scheduleEntries", all_entries)
                 store.push_notif("success", "✅ Đã phê duyệt lịch",
                                  f"{e.get('date_str')} - {level_label(e.get('level',''))}",
-                                 "schedule", target_uid=e.get("creator_id"))
+                                 "schedule", target_uid=e.get("creator_id"),
+                                 sender_name=_approver_name)
                 self.toast("✅ Đã phê duyệt")
                 self.body.content = self.module_schedule()
                 self.refresh()
@@ -3342,12 +3805,14 @@ class App:
                     reason = (reason_input.value or "").strip()
                     if not reason:
                         self.toast("⚠️ Vui lòng nhập lý do"); return
+                    _rejecter_name = store.get("userProfile", store.seed_user_profile).get("name") or "Chỉ huy"
                     e["status"] = "rejected"
                     e["reject_reason"] = reason
                     store.set_value("scheduleEntries", all_entries)
                     store.push_notif("warning", "❌ Lịch bị từ chối",
-                                     f"{reason[:60]}", "schedule",
-                                     target_uid=e.get("creator_id"))
+                                     f"{e.get('date_str')} - {level_label(e.get('level',''))}: {reason[:50]}",
+                                     "schedule", target_uid=e.get("creator_id"),
+                                     sender_name=_rejecter_name)
                     _dlg.open = False; page.update()
                     self.toast("Đã từ chối")
                     self.body.content = self.module_schedule()
@@ -3357,11 +3822,11 @@ class App:
                     title=ft.Text("Từ chối phê duyệt", size=16, weight=ft.FontWeight.BOLD),
                     content=ft.Column([reason_input], tight=True),
                     actions=[
-                        ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(page)),
+                        ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(self.page)),
                         ft.ElevatedButton("Từ chối", bgcolor="#d32f2f", color=ft.Colors.WHITE, on_click=do_reject),
                     ],
                 )
-                _show_dialog(page, _dlg)
+                _show_dialog(self.page, _dlg)
 
             action_row = []
             if is_approver:
@@ -3470,7 +3935,8 @@ class App:
                     content=ft.Tabs(
                         selected_index=sel_tab, on_change=on_tab_changed,
                         tabs=[ft.Tab(text="Lịch gác"), ft.Tab(text="Trực ban")],
-                    ), expand=True,
+                        height=46,
+                    ), expand=True, height=46,
                 ),
                 ft.IconButton(
                     icon=ft.Icons.FILE_DOWNLOAD,
@@ -3671,7 +4137,8 @@ class App:
                 )
 
                 def _close():
-                    page.bottom_sheet.open = False
+                    if _bs_ref2[0]:
+                        _bs_ref2[0].open = False
                     page.update()
 
                 def _done(ev):
@@ -3682,7 +4149,7 @@ class App:
                     _rebuild_slots()
                     page.update()
 
-                page.bottom_sheet = ft.BottomSheet(
+                _bs2 = ft.BottomSheet(
                     content=ft.Container(
                         content=ft.Column([
                             ft.Row([
@@ -3700,6 +4167,7 @@ class App:
                     ),
                     open=True,
                 )
+                page.overlay.append(_bs2)
                 page.update()
 
             def _open_person_picker(slot_idx: int, time_range: str):
@@ -3729,7 +4197,7 @@ class App:
                     _rebuild_slots()
                     page.update()
 
-                page.bottom_sheet = ft.BottomSheet(
+                _bs3 = ft.BottomSheet(
                     content=ft.Container(
                         content=ft.Column([
                             ft.Row([
@@ -3747,6 +4215,7 @@ class App:
                     ),
                     open=True,
                 )
+                page.overlay.append(_bs3)
                 page.update()
 
             def _rebuild_slots(e=None):
@@ -3841,6 +4310,7 @@ class App:
                     else:
                         ca_data.append({"time": time_range, "unit_id": "", "unit_name": "", "people": []})
 
+                _sched_creator = profile.get("name") or profile.get("username") or "Chỉ huy"
                 if is_unit_level:
                     notified = set()
                     for ca in ca_data:
@@ -3858,13 +4328,15 @@ class App:
                             if cmd_id:
                                 store.push_notif("unit", "🛡 Đơn vị được cắt gác",
                                                  f"{ca.get('unit_name','')} • {vong} • {date_str}",
-                                                 "schedule", target_uid=cmd_id)
+                                                 "schedule", target_uid=cmd_id,
+                                                 sender_name=_sched_creator)
                 else:
                     for ca in ca_data:
                         for pid in ca.get("people", []):
                             store.push_notif("unit", "🛡 Bạn được cắt gác",
                                              f"{vong} • {ca['time']} • {date_str}",
-                                             "schedule", target_uid=pid)
+                                             "schedule", target_uid=pid,
+                                             sender_name=_sched_creator)
 
                 entry = {
                     "id": f"sc-{store.now_ms()}", "type": "gac", "level": lvl,
@@ -3879,7 +4351,8 @@ class App:
                 store.set_value("scheduleEntries", entries)
                 store.log_activity(f"Cắt gác: {vong} - {date_str}")
                 store.push_notif("unit", "📋 Lịch gác mới cần duyệt",
-                                 f"{vong} • {date_str}", "schedule", target_uid=approver_id)
+                                 f"{_sched_creator}: {vong} • {date_str}", "schedule",
+                                 target_uid=approver_id, sender_name=_sched_creator)
                 _dlg.open = False; page.update()
                 self.toast("✅ Đã cắt gác")
                 self.body.content = self.module_schedule()
@@ -3899,7 +4372,7 @@ class App:
                 title=ft.Text("Cắt gác", size=16, weight=ft.FontWeight.BOLD),
                 content=content_col,
                 actions=[
-                    ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(page)),
+                    ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(self.page)),
                     ft.ElevatedButton("Lưu & Gửi duyệt", bgcolor=self.SCHEDULE_THEME,
                                       color=ft.Colors.WHITE, on_click=do_save_gac),
                 ],
@@ -3937,8 +4410,10 @@ class App:
                 entries.append(entry)
                 store.set_value("scheduleEntries", entries)
                 store.log_activity(f"Cắt trực ban: {date_str}")
+                _tb_creator = profile.get("name") or profile.get("username") or "Chỉ huy"
                 store.push_notif("unit", "📋 Trực ban mới cần duyệt",
-                                 f"{date_str}", "schedule", target_uid=approver_id)
+                                 f"{_tb_creator}: {date_str}", "schedule",
+                                 target_uid=approver_id, sender_name=_tb_creator)
                 _dlg.open = False; page.update()
                 self.toast("✅ Đã cắt trực ban")
                 self.body.content = self.module_schedule()
@@ -3956,12 +4431,12 @@ class App:
                 title=ft.Text("Cắt trực ban", size=16, weight=ft.FontWeight.BOLD),
                 content=content_col,
                 actions=[
-                    ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(page)),
+                    ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(self.page)),
                     ft.ElevatedButton("Lưu & Gửi duyệt", bgcolor=self.SCHEDULE_THEME,
                                       color=ft.Colors.WHITE, on_click=do_save_tb),
                 ],
             )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     # ---------- Module: Báo cáo ----------
     def module_reports(self) -> ft.Control:
@@ -4172,7 +4647,7 @@ class App:
         err_text = ft.Text("", color=RED, size=12)
 
         def close_dlg(_):
-            _close_dialog(page)
+            _close_dialog(self.page)
 
         def save_assign(_):
             err_text.value = ""
@@ -4252,7 +4727,7 @@ class App:
                 ),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     # ---------- Module: Quản lý quân nhân + cây đơn vị ----------
     def module_units(self) -> ft.Control:
@@ -4501,6 +4976,8 @@ class App:
                 if j is not None:
                     soldiers2[j]["accountStatus"] = "active"
                     store.set_value("soldiers", soldiers2)
+                    # Override 120s để tránh background sync ghi đè
+                    store.set_account_status_override(target_sid, "active", ttl_seconds=120.0)
                     if _looks_like_firebase_uid(target_sid):
                         try:
                             FS.set_doc(f"users/{target_sid}", {"accountStatus": "active"})
@@ -4719,10 +5196,11 @@ class App:
                     selected_index=selected_idx,
                     on_change=on_units_tab_changed,
                     tabs=[ft.Tab(text=label) for label, _ in tab_defs],
+                    height=46,
                 ),
                 bgcolor=BG,
                 border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
-                padding=ft.padding.symmetric(horizontal=10, vertical=4),
+                height=46,
             )
 
         if current_sub == "tree":
@@ -5026,7 +5504,7 @@ class App:
 
             def close_sheet():
                 try:
-                    page.bottom_sheet.open = False
+                    _bs4.open = False
                 except Exception:
                     pass
                 page.update()
@@ -5036,7 +5514,7 @@ class App:
                 summary_label.value = _summary_text()
                 close_sheet()
 
-            page.bottom_sheet = ft.BottomSheet(
+            _bs4 = ft.BottomSheet(
                 open=True,
                 content=ft.Container(
                     content=ft.Column(
@@ -5076,6 +5554,7 @@ class App:
                     border_radius=ft.border_radius.only(top_left=16, top_right=16),
                 ),
             )
+            page.overlay.append(_bs4)
             page.update()
 
         # Compact UI: clickable container giống date picker
@@ -5139,7 +5618,7 @@ class App:
                               on_click=lambda e: close_dlg()),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def f47_confirm_delete(self, camp: dict) -> None:
         """Xác nhận trước khi xoá chiến dịch."""
@@ -5159,6 +5638,14 @@ class App:
             self.toast(f"🗑 Đã xoá: {title[:40]}")
             self.body.content = self.module_f47()
             self.refresh()
+            # Xoá ngay khỏi v2_f47Campaigns (không chờ _push để tránh sync ngược)
+            def _del_v2():
+                try:
+                    FS.delete_doc(f"v2_f47Campaigns/e141/{cid}")
+                except Exception:
+                    pass
+            import threading as _t
+            _t.Thread(target=_del_v2, daemon=True).start()
 
         _dlg = ft.AlertDialog(
             modal=True,
@@ -5170,13 +5657,13 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton("Xoá", on_click=do,
                                   bgcolor=RED, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def f47_open_create(self, existing: dict | None = None) -> None:
         """Dialog phát động chiến dịch F47 mới (hoặc sửa nếu existing != None)."""
@@ -5271,11 +5758,16 @@ class App:
             def worker():
                 f = e.files[0]
                 try:
+                    remote = fb_storage.make_remote_path(f"f47/samples/{AUTH_STATE['uid']}", f.name)
                     if f.path:
-                        remote = fb_storage.make_remote_path(f"f47/samples/{AUTH_STATE['uid']}", f.name)
                         res = fb_storage.upload_file(f.path, remote, AUTH_STATE["idToken"])
-                        ex_sample_media[0] = res["downloadURL"]
-                        attached_label.value = f"📎 Đã tải lên mẫu"
+                    elif f.bytes:
+                        res = fb_storage.upload_data(remote, f.bytes, AUTH_STATE["idToken"], f.name)
+                    else:
+                        attached_label.value = "❌ Không đọc được file"
+                        page.update(); return
+                    ex_sample_media[0] = res["downloadURL"]
+                    attached_label.value = f"📎 Đã tải lên mẫu"
                 except Exception as ex_e:
                     attached_label.value = f"❌ Lỗi: {ex_e}"
                 try:
@@ -5379,12 +5871,14 @@ class App:
                 store.log_activity(f"Phát động F47: {title}")
                 # Notif TARGETED — chỉ gửi đến members của chiến dịch
                 _link = f"f47:{new_camp['id']}"
+                _creator_name = profile.get("name") or profile.get("username") or "Quản trị"
                 for muid in members:
                     if muid:
                         store.push_notif(
                             "f47", "🛡 Chiến dịch F47 mới cho bạn",
                             f"{title} • Hạn {hours}h", _link,
                             target_uid=muid,
+                            sender_name=_creator_name,
                         )
                 self.toast(f"Đã phát động: {title}")
             try:
@@ -5411,7 +5905,7 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton(
                     "Lưu thay đổi" if is_edit else "Phát động",
@@ -5421,7 +5915,7 @@ class App:
                 ),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def _my_notifs(self) -> list:
         all_my_notifs = store.filter_notifs_for_user(
@@ -5474,14 +5968,15 @@ class App:
                 ok = 0
                 for f in e.files:
                     try:
-                        if not f.path:
-                            continue
                         remote = fb_storage.make_remote_path(
                             f"shares/{AUTH_STATE['uid']}", f.name
                         )
-                        res = fb_storage.upload_file(
-                            f.path, remote, AUTH_STATE["idToken"]
-                        )
+                        if f.path:
+                            res = fb_storage.upload_file(f.path, remote, AUTH_STATE["idToken"])
+                        elif f.bytes:
+                            res = fb_storage.upload_data(remote, f.bytes, AUTH_STATE["idToken"], f.name)
+                        else:
+                            continue
                         uploaded.append(res)
                         ok += 1
                     except Exception as ex:
@@ -5553,13 +6048,13 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton("Đăng bài", on_click=submit,
                                   bgcolor=GREEN_MID, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def f47_open_campaign_detail(self, camp: dict) -> None:
         """Mở trang chi tiết chiến dịch — tỷ lệ theo đơn vị, người làm/chưa làm, giục."""
@@ -5705,7 +6200,13 @@ class App:
                         [
                             ft.Container(height=4),
                             ft.Text("📸 Ảnh/Video Mẫu đính kèm:", size=11, color=TEXT_MUTED),
-                            ft.Image(src=cur["sampleMediaUrl"], border_radius=8, width=300, fit=ft.ImageFit.CONTAIN)
+                            ft.Container(
+                                content=ft.Image(src=cur["sampleMediaUrl"], border_radius=8,
+                                                 width=300, fit=ft.ImageFit.CONTAIN),
+                                on_click=lambda e, u=cur["sampleMediaUrl"]: open_image_viewer(self.page, u),
+                                ink=True, border_radius=8,
+                                tooltip="Bấm để xem ảnh",
+                            )
                         ] if cur.get("sampleMediaUrl") else []
                     ),
                     ft.Container(
@@ -5849,21 +6350,14 @@ class App:
             }
             store.set_value("f47Reminders", reminders)
             # Notif CÓ targetUid → chỉ user uid mới thấy trong list thông báo
+            _reminder_by = store.get("userProfile", store.seed_user_profile).get("name") or "Chỉ huy"
             store.push_notif(
                 "f47", f"📢 Bạn được giục",
                 f"Hãy làm chiến dịch '{cur.get('title','')[:60]}'",
-                "f47",
+                f"f47:{camp_id}",
                 target_uid=uid,
+                sender_name=_reminder_by,
             )
-            try:
-                fcm.queue_notification(
-                    FS, uid,
-                    title="📢 Giục F47",
-                    body=f"Bạn cần làm: {cur.get('title','')[:60]}",
-                    link="f47",
-                )
-            except Exception:
-                pass
             store.log_activity(f"Giục F47 [{cur.get('title','')[:30]}]: {name}")
             if refresh_at_end:
                 self.toast(f"✅ Đã giục {name}")
@@ -6258,18 +6752,20 @@ class App:
                     border_radius=12, padding=12,
                     margin=ft.margin.only(bottom=8),
                 ))
-            main_body = ft.ListView(
-                controls=[ft.Container(
-                    content=ft.Column(
-                        rows if rows else [ft.Container(
-                            height=60), ft.Text("Chưa có báo cáo nào",
-                                                color=TEXT_MUTED, size=13,
-                                                text_align=ft.TextAlign.CENTER)],
-                        spacing=0,
-                    ),
-                    padding=10,
-                )],
+            main_body = ft.Container(
+                content=ft.Column(
+                    controls=rows if rows else [
+                        ft.Container(height=60),
+                        ft.Text("Chưa có báo cáo nào",
+                                 color=TEXT_MUTED, size=13,
+                                 text_align=ft.TextAlign.CENTER),
+                    ],
+                    scroll=ft.ScrollMode.AUTO,
+                    spacing=0,
+                    horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+                ),
                 expand=True,
+                padding=ft.padding.all(10),
             )
         else:
             # Filter theo ngành — icon đã ở tabs_bar (hourglass), chỉ hiện dropdown khi mở
@@ -6278,7 +6774,7 @@ class App:
 
             def on_filter_change(e):
                 setattr(self, f"task_{domain}_filter", e.control.value or "")
-                self.body.content = self.module_ctdctct()
+                self.body.content = self._render_task_module(domain)
                 self.refresh()
 
             filter_opts = [ft.dropdown.Option("", "🔎 Tất cả ngành")]
@@ -6310,23 +6806,36 @@ class App:
                 tasks_view = tasks
                 empty_msg = "📭 Chưa có nhiệm vụ nào"
 
-            task_list = ft.ListView(
-                controls=[ft.Container(
-                    content=ft.Column([card(t) for t in tasks_view], spacing=0)
-                            if tasks_view else
-                            ft.Column([
-                                ft.Container(height=80),
-                                ft.Text(empty_msg, text_align=ft.TextAlign.CENTER,
-                                        color=TEXT_MUTED, size=14),
-                                ft.Container(height=10),
-                                ft.Text("Bấm nút  +  ở góc phải để triển khai",
-                                        text_align=ft.TextAlign.CENTER,
-                                        color=TEXT_MUTED, size=12),
-                            ]),
-                    padding=10,
-                )],
-                expand=True,
-            )
+            if tasks_view:
+                task_list = ft.Container(
+                    content=ft.Column(
+                        controls=[card(t) for t in tasks_view],
+                        scroll=ft.ScrollMode.AUTO,
+                        spacing=0,
+                        horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+                    ),
+                    expand=True,
+                    padding=ft.padding.all(10),
+                )
+            else:
+                task_list = ft.Container(
+                    content=ft.Column(
+                        controls=[
+                            ft.Container(height=80),
+                            ft.Text(empty_msg, text_align=ft.TextAlign.CENTER,
+                                    color=TEXT_MUTED, size=14),
+                            ft.Container(height=10),
+                            ft.Text("Bấm nút  +  ở góc phải để triển khai",
+                                    text_align=ft.TextAlign.CENTER,
+                                    color=TEXT_MUTED, size=12),
+                        ],
+                        scroll=ft.ScrollMode.AUTO,
+                        spacing=0,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                    expand=True,
+                    padding=ft.padding.all(10),
+                )
 
             main_body = ft.Column([filter_bar, task_list], spacing=0, expand=True)
 
@@ -6362,8 +6871,10 @@ class App:
                     selected_index=sel,
                     on_change=on_tab_changed,
                     tabs=[ft.Tab(text=label) for label, _ in tab_defs],
+                    height=46,
                 ),
                 expand=True,
+                height=46,
             ),
         ]
         # Chỉ tab Nhiệm vụ mới hiện icon lọc ngành
@@ -6486,13 +6997,15 @@ class App:
                 ok = 0
                 for f in e.files:
                     try:
-                        if not f.path:
-                            continue
                         remote = fb_storage.make_remote_path(
                             f"ctdctct/attach/{AUTH_STATE['uid']}", f.name
                         )
-                        res = fb_storage.upload_file(f.path, remote,
-                                                    AUTH_STATE["idToken"])
+                        if f.path:
+                            res = fb_storage.upload_file(f.path, remote, AUTH_STATE["idToken"])
+                        elif f.bytes:
+                            res = fb_storage.upload_data(remote, f.bytes, AUTH_STATE["idToken"], f.name)
+                        else:
+                            continue
                         ex_attachments.append(res["downloadURL"])
                         ok += 1
                     except Exception as ex_e:
@@ -6645,12 +7158,13 @@ class App:
                 store.set_value("ctdctctTasks", tasks)
                 store.log_activity(f"Triển khai CTĐ-CTCT: [{code}] {title}")
                 # Notif: nếu có followers chỉ gửi targeted; nếu không gửi broadcast
+                _creator_name = profile.get("name") or profile.get("username") or "Quản trị"
                 if followers:
                     _link_f = f"ctdctct:{new_task['id']}"
                     for fuid in followers:
                         store.push_notif("ctdctct", f"🎖 [{code}] Bạn là người theo dõi",
                                          f"{title} • Hạn {hours}h", _link_f,
-                                         target_uid=fuid)
+                                         target_uid=fuid, sender_name=_creator_name)
                 else:
                     # Targeted: chỉ members + người triển khai (không broadcast)
                     _link = f"ctdctct:{new_task['id']}"
@@ -6659,21 +7173,22 @@ class App:
                             store.push_notif(
                                 "ctdctct", f"🎖 [{code}] Nhiệm vụ mới cho bạn",
                                 f"{title} • Hạn {hours}h", _link,
-                                target_uid=muid,
+                                target_uid=muid, sender_name=_creator_name,
                             )
                 self.toast(f"Đã triển khai: [{code}] {title}")
             try:
                 _dlg.open = False
             except Exception:
                 pass
-            self.body.content = self.module_ctdctct()
+            self.body.content = self._render_task_module(domain)
             self.refresh()
 
+        domain_title = self.TASK_DOMAIN_CONFIG.get(domain, {}).get("title", "CTĐ-CTCT")
         _dlg = ft.AlertDialog(
             modal=True,
             title=ft.Text(
-                "✏️ Sửa nhiệm vụ CTĐ-CTCT" if is_edit
-                else "🎖 Triển khai nhiệm vụ CTĐ-CTCT",
+                f"✏️ Sửa nhiệm vụ {domain_title}" if is_edit
+                else f"🎖 Triển khai nhiệm vụ {domain_title}",
                 size=15, weight=ft.FontWeight.BOLD,
             ),
             content=ft.Container(
@@ -6690,7 +7205,7 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton(
                     "Lưu thay đổi" if is_edit else "Triển khai",
@@ -6700,7 +7215,7 @@ class App:
                 ),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def task_open_task_menu(self, domain: str, task: dict) -> None:
         """Popup ✏️ Sửa / 🗑 Xoá cho 1 nhiệm vụ (admin)."""
@@ -6734,7 +7249,7 @@ class App:
             ),
             actions=[ft.TextButton("Đóng", on_click=lambda e: close_dlg())],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def task_confirm_delete(self, domain: str, task: dict) -> None:
         page = self.page
@@ -6746,11 +7261,12 @@ class App:
                 _dlg.open = False
             except Exception:
                 pass
-            tasks = store.get(self.TASK_DOMAIN_CONFIG.get(domain, {}).get('store_key'), lambda: [])
+            store_key = self.TASK_DOMAIN_CONFIG.get(domain, {}).get('store_key', 'ctdctctTasks')
+            tasks = store.get(store_key, lambda: [])
             tasks = [t for t in tasks if t.get("id") != tid]
-            store.set_value("ctdctctTasks", tasks)
+            store.set_value(store_key, tasks)
             self.toast(f"🗑 Đã xoá: {title[:40]}")
-            self.body.content = self.module_ctdctct()
+            self.body.content = self._render_task_module(domain)
             self.refresh()
 
         _dlg = ft.AlertDialog(
@@ -6759,12 +7275,12 @@ class App:
             content=ft.Text(f"Xoá nhiệm vụ '{title}'?\nBáo cáo đã nộp sẽ mất.", size=12),
             actions=[
                 ft.TextButton("Huỷ",
-                              on_click=lambda e: _close_dialog(page)),
+                              on_click=lambda e: _close_dialog(self.page)),
                 ft.ElevatedButton("Xoá", on_click=do,
                                   bgcolor=RED, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def task_open_task_detail(self, domain: str, task: dict) -> None:
         """Trang chi tiết nhiệm vụ — tỷ lệ đơn vị + người làm/chưa làm + giục."""
@@ -6902,7 +7418,13 @@ class App:
                     [
                         ft.Container(height=4),
                         ft.Text("📸 Ảnh/Video Mẫu đính kèm:", size=11, color=TEXT_MUTED),
-                        ft.Image(src=cur["attachments"][0], border_radius=8, width=300, fit=ft.ImageFit.CONTAIN)
+                        ft.Container(
+                            content=ft.Image(src=cur["attachments"][0], border_radius=8,
+                                             width=300, fit=ft.ImageFit.CONTAIN),
+                            on_click=lambda e, u=cur["attachments"][0]: open_image_viewer(self.page, u),
+                            ink=True, border_radius=8,
+                            tooltip="Bấm để xem ảnh",
+                        )
                     ] if cur.get("attachments") and len(cur.get("attachments")) > 0 else []
                 ),
                 ft.Container(
@@ -7030,15 +7552,18 @@ class App:
             store.set_value("ctdctctTasks", tasks_now)
             # Notif tới người báo cáo
             s_name = (soldier_by_id.get(uid) or {}).get("name") or uid
+            _approver_name = profile.get("name") or profile.get("username") or "Chỉ huy"
             if approve:
                 store.push_notif("ctdctct", "✅ Báo cáo đã được duyệt",
-                                 f"Bạn được duyệt: {cur.get('title','')[:60]}",
-                                 "ctdctct", target_uid=uid)
+                                 f"Bạn được duyệt: {full_title[:60]}",
+                                 f"ctdctct:{tid}", target_uid=uid,
+                                 sender_name=_approver_name)
                 self.toast(f"✅ Duyệt báo cáo của {s_name}")
             else:
                 store.push_notif("ctdctct", "❌ Báo cáo bị từ chối",
-                                 f"Cần làm lại: {cur.get('title','')[:60]}",
-                                 "ctdctct", target_uid=uid)
+                                 f"Cần làm lại: {full_title[:60]}",
+                                 f"ctdctct:{tid}", target_uid=uid,
+                                 sender_name=_approver_name)
                 self.toast(f"❌ Từ chối báo cáo của {s_name}")
             self.task_open_task_detail(domain, cur)
 
@@ -7118,15 +7643,11 @@ class App:
                 "at": store.now_ms(),
             }
             store.set_value("ctdctctReminders", reminders)
+            _ctd_reminder_by = store.get("userProfile", store.seed_user_profile).get("name") or "Chỉ huy"
             store.push_notif("ctdctct", "📢 Bạn được giục",
                              f"Hãy báo cáo nhiệm vụ '{full_title[:60]}'",
-                             "ctdctct", target_uid=uid)
-            try:
-                fcm.queue_notification(FS, uid, title="📢 Giục CTĐ-CTCT",
-                                       body=f"Bạn cần báo cáo: {full_title[:60]}",
-                                       link="ctdctct")
-            except Exception:
-                pass
+                             f"ctdctct:{tid}", target_uid=uid,
+                             sender_name=_ctd_reminder_by)
             if refresh:
                 self.toast(f"✅ Đã giục {name}")
                 self.task_open_task_detail(domain, cur)
@@ -7322,17 +7843,19 @@ class App:
         # Notif về người triển khai để họ biết ai đã nhận
         if creator_uid and creator_uid != uid:
             profile = store.get("userProfile", store.seed_user_profile)
+            _recv_name = profile.get("name") or profile.get("username") or uid
             store.push_notif(
                 "ctdctct", "✅ Có người xác nhận nhận",
-                f"{profile.get('name', uid)} đã nhận: {title[:60]}",
-                "ctdctct", target_uid=creator_uid,
+                f"{_recv_name} đã nhận: {title[:60]}",
+                f"ctdctct:{task.get('id','')}", target_uid=creator_uid,
+                sender_name=_recv_name,
             )
         self.toast("✅ Đã xác nhận nhận nhiệm vụ")
         self.task_open_task_detail(domain, task)
 
     def _task_back_to_list(self, domain: str) -> None:
         setattr(self, f"task_{domain}_view", "tasks")
-        self.body.content = self.module_ctdctct()
+        self.body.content = self._render_task_module(domain)
         self.refresh()
 
     def task_open_submit(self, domain: str, task: dict) -> None:
@@ -7370,15 +7893,17 @@ class App:
                 ok = 0
                 for f in e.files:
                     try:
-                        if not f.path:
-                            continue
                         name_low = (f.name or "").lower()
                         is_video = any(name_low.endswith(ext) for ext in
                                        (".mp4", ".mov", ".avi", ".mkv", ".webm", ".3gp"))
                         folder = f"reports/task/{AUTH_STATE['uid']}"
                         remote = fb_storage.make_remote_path(folder, f.name)
-                        res = fb_storage.upload_file(f.path, remote,
-                                                    AUTH_STATE["idToken"])
+                        if f.path:
+                            res = fb_storage.upload_file(f.path, remote, AUTH_STATE["idToken"])
+                        elif f.bytes:
+                            res = fb_storage.upload_data(remote, f.bytes, AUTH_STATE["idToken"], f.name)
+                        else:
+                            continue
                         url = res["downloadURL"]
                         if is_video:
                             attached_videos.append(url)
@@ -7447,12 +7972,14 @@ class App:
             store.log_activity(f"Báo cáo CTĐ-CTCT: {task.get('title','')[:40]}")
             profile = store.get("userProfile", store.seed_user_profile)
             sender_name = profile.get("name") or AUTH_STATE.get("username", "")
+            _task_link = f"ctdctct:{task.get('id','')}"
             for au in set(approvers):
                 if au and au != uid:
                     store.push_notif(
                         "ctdctct", "📤 Báo cáo CTĐ-CTCT cần duyệt",
                         f"{sender_name} đã báo cáo: {task.get('title','')[:50]}",
-                        "ctdctct", target_uid=au,
+                        _task_link, target_uid=au,
+                        sender_name=sender_name,
                     )
             try:
                 _dlg.open = False
@@ -7486,13 +8013,13 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton("Gửi", on_click=submit,
                                   bgcolor=GREEN_MID, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def _f47_back_to_list(self) -> None:
         """Quay lại list chiến dịch trong module F47."""
@@ -7534,11 +8061,10 @@ class App:
                             f"f47/{camp['id']}/{AUTH_STATE['uid']}", f.name
                         )
                         if f.path:
-                            res = fb_storage.upload_file(
-                                f.path, remote, AUTH_STATE["idToken"]
-                            )
+                            res = fb_storage.upload_file(f.path, remote, AUTH_STATE["idToken"])
+                        elif f.bytes:
+                            res = fb_storage.upload_data(remote, f.bytes, AUTH_STATE["idToken"], f.name)
                         else:
-                            # Web platform: dữ liệu trong bytes (Flet trả qua e.files)
                             continue
                         uploaded.append(res)
                         ok += 1
@@ -7608,12 +8134,12 @@ class App:
             ),
             actions=[
                 ft.TextButton("Huỷ",
-                              on_click=lambda e: _close_dialog(page)),
+                              on_click=lambda e: _close_dialog(self.page)),
                 ft.ElevatedButton("Gửi", on_click=submit,
                                   bgcolor=GREEN_MID, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     # ============================================================
     # ===== GUEST WORKFLOW: helpers chuỗi duyệt nhiều cấp     =====
@@ -7974,8 +8500,9 @@ class App:
                         selected_index=selected_idx,
                         on_change=on_guests_tab_changed,
                         tabs=[ft.Tab(text=label) for label, _ in tab_defs],
+                        height=46,
                     ),
-                    expand=True,
+                    expand=True, height=46,
                 ),
                 ft.IconButton(
                     ft.Icons.FILE_DOWNLOAD, icon_color=GREEN_MID, icon_size=20,
@@ -8007,7 +8534,7 @@ class App:
                 [view_toggle, self._guest_stats_view()],
                 spacing=0, expand=True,
             )
-            return ft.Stack([stats_col, stats_fab], expand=True)
+            return ft.Container(content=ft.Stack([stats_col, stats_fab]), expand=True)
 
         all_guests = list(store.get("guests", []) or [])
         soldiers_all = store.get("soldiers", store.seed_soldiers)
@@ -8695,6 +9222,7 @@ class App:
                         f"{my_name} trình lên — vui lòng xem & quyết định.",
                         link=f"guest:{g.get('id')}",
                         target_uid=nxt_uid,
+                        sender_name=my_name,
                     )
                 except Exception:
                     pass
@@ -8719,7 +9247,7 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton(
                     "📤 Trình",
@@ -8728,7 +9256,7 @@ class App:
                 ),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def open_guest_registration_dialog(self) -> None:
         try:
@@ -8988,6 +9516,7 @@ class App:
                             f"{push_name} đăng ký tiếp khách {name} — cần bạn xem & duyệt.",
                             link=f"guest:{guest_id}",
                             target_uid=appr_id,
+                            sender_name=push_name,
                         )
                     except Exception:
                         pass
@@ -9034,11 +9563,11 @@ class App:
                 title=ft.Text("Đăng ký tiếp khách", size=16, weight=ft.FontWeight.BOLD),
                 content=ft.Container(content=dlg_content, width=350),
                 actions=[
-                    ft.TextButton("Hủy", on_click=lambda e: _close_dialog(page)),
+                    ft.TextButton("Hủy", on_click=lambda e: _close_dialog(self.page)),
                     ft.ElevatedButton("Đăng ký", on_click=do_save, bgcolor=GREEN_MID, color=ft.Colors.WHITE)
                 ],
             )
-            _show_dialog(page, _dlg)
+            _show_dialog(self.page, _dlg)
         except Exception as e:
             print("Lỗi mở form đăng ký:", e)
             self.toast(f"Lỗi hệ thống: {e}")
@@ -9158,7 +9687,8 @@ class App:
                                          f"Phản hồi: Khách đã về ({g.get('guestName','')})",
                                          f"{push_name} báo cáo: Khách đã về, đơn đã hoàn thành.",
                                          link=f"guest:{g.get('id')}",
-                                         target_uid=str(target))
+                                         target_uid=str(target),
+                                         sender_name=push_name)
                     except Exception:
                         pass
                 self.toast("✅ Đã báo cáo khách đã về!")
@@ -9178,7 +9708,8 @@ class App:
                                          f"Phản hồi: Khách chưa về ({g.get('guestName','')})",
                                          f"{push_name} báo cáo: Khách vẫn đang ở đơn vị.",
                                          link=f"guest:{g.get('id')}",
-                                         target_uid=str(target))
+                                         target_uid=str(target),
+                                         sender_name=push_name)
                     except Exception:
                         pass
                 self.toast("✅ Đã phản hồi khách chưa về")
@@ -9234,7 +9765,8 @@ class App:
                                  f"Chỉ huy đã xem yêu cầu '{g.get('guestName')}'",
                                  f"{push_name} đã nhận yêu cầu của bạn.",
                                  link=f"guest:{g.get('id')}",
-                                 target_uid=str(g.get("soldierId") or ""))
+                                 target_uid=str(g.get("soldierId") or ""),
+                                 sender_name=push_name)
             except Exception:
                 pass
             self.toast("✅ Đã nhận yêu cầu")
@@ -9292,6 +9824,7 @@ class App:
                         f"{push_name} trình lên — vui lòng xem & quyết định.",
                         link=f"guest:{g.get('id')}",
                         target_uid=nxt_uid,
+                        sender_name=push_name,
                     )
                 except Exception:
                     pass
@@ -9311,7 +9844,7 @@ class App:
                                       bgcolor=GREEN_DARK, color=ft.Colors.WHITE),
                 ],
             )
-            _show_dialog(page, _dlg)
+            _show_dialog(self.page, _dlg)
 
         # --- Action: Gửi kiểm tra lại (yêu cầu note) ---
         def do_review_request(_):
@@ -9340,7 +9873,8 @@ class App:
                                      "Yêu cầu tiếp khách cần kiểm tra lại",
                                      f"{push_name} có ghi chú — vui lòng xem.",
                                      link=f"guest:{g.get('id')}",
-                                     target_uid=str(g.get("soldierId") or ""))
+                                     target_uid=str(g.get("soldierId") or ""),
+                                     sender_name=push_name)
                 except Exception:
                     pass
                 self.toast("✏️ Đã gửi lại để kiểm tra")
@@ -9358,7 +9892,7 @@ class App:
                     ft.ElevatedButton("Gửi lại", on_click=submit, bgcolor=AMBER, color=ft.Colors.WHITE),
                 ],
             )
-            _show_dialog(page, _dlg)
+            _show_dialog(self.page, _dlg)
 
         # --- Action: Từ chối (yêu cầu lý do) ---
         def do_reject(_):
@@ -9386,7 +9920,8 @@ class App:
                                      "Yêu cầu tiếp khách bị từ chối",
                                      f"{push_name} từ chối — Lý do: {n}",
                                      link=f"guest:{g.get('id')}",
-                                     target_uid=str(g.get("soldierId") or ""))
+                                     target_uid=str(g.get("soldierId") or ""),
+                                     sender_name=push_name)
                 except Exception:
                     pass
                 self.toast("❌ Đã từ chối")
@@ -9404,7 +9939,7 @@ class App:
                     ft.ElevatedButton("Từ chối", on_click=submit, bgcolor=RED, color=ft.Colors.WHITE),
                 ],
             )
-            _show_dialog(page, _dlg)
+            _show_dialog(self.page, _dlg)
 
         # --- Action: Đồng ý (chỉ ở cấp cao nhất hoặc khi chỉ huy quyết định duyệt thẳng) ---
         def do_approve(_):
@@ -9418,7 +9953,8 @@ class App:
                                  f"Yêu cầu tiếp khách đã được duyệt",
                                  f"{push_name} đã đồng ý — khách có thể đến.",
                                  link=f"guest:{g.get('id')}",
-                                 target_uid=str(g.get("soldierId") or ""))
+                                 target_uid=str(g.get("soldierId") or ""),
+                                 sender_name=push_name)
             except Exception:
                 pass
             self.toast("✅ Đã duyệt yêu cầu")
@@ -9440,7 +9976,8 @@ class App:
                                  f"Chỉ huy hỏi: Khách đã về chưa? ({g.get('guestName','')})",
                                  f"{push_name} hỏi: Khách của đ.c đã về chưa? Vui lòng trả lời.",
                                  link=f"guest:{g.get('id')}",
-                                 target_uid=str(g.get("soldierId") or ""))
+                                 target_uid=str(g.get("soldierId") or ""),
+                                 sender_name=push_name)
             except Exception:
                 pass
             self.toast("🔔 Đã gửi nhắc nhở đến cấp dưới!")
@@ -9529,7 +10066,7 @@ class App:
                                              bgcolor=RED, color=ft.Colors.WHITE))
 
         actions.append(ft.TextButton("Đóng",
-                                     on_click=lambda e: _close_dialog(page)))
+                                     on_click=lambda e: _close_dialog(self.page)))
 
         _dlg = ft.AlertDialog(
             modal=True,
@@ -9538,158 +10075,315 @@ class App:
             actions=actions,
             actions_alignment=ft.MainAxisAlignment.END,
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def module_f47(self) -> ft.Control:
-        camps = store.get("f47Campaigns", store.seed_f47)
+        camps = store.get("f47Campaigns", store.seed_f47) or []
+        if not isinstance(camps, list):
+            camps = []
         now_ms = store.now_ms()
-        camps = sorted(camps, key=lambda c: (1 if c.get("deadline", 0) <= now_ms else 0, -c.get("deadline", 0)))
+        camps = sorted(camps, key=lambda c: (
+            1 if int(c.get("deadline") or 0) <= now_ms else 0,
+            -int(c.get("deadline") or 0)
+        ))
         soldiers = store.get("soldiers", store.seed_soldiers)
         soldier_by_id = {str(s.get("id")): s for s in soldiers if s.get("id")}
         current_view = getattr(self, "f47_view", "campaigns")
 
-        def cd_str(c) -> str:
-            left = c["deadline"] - store.now_ms()
+        # ── helpers ──────────────────────────────────────────────
+        def cd_str(c: dict) -> str:
+            left = int(c.get("deadline") or 0) - store.now_ms()
             if left <= 0:
                 return "Hết giờ"
             h, rem = divmod(left, 3600_000)
             m, _ = divmod(rem, 60_000)
             return f"{h:02d}h {m:02d}m"
 
-        def card(c: dict) -> ft.Container:
-            done = len(c.get("submissions", {}))
-            total = len(c.get("members", []))
-            pct = int(done / total * 100) if total else 0
+        def switch_view(key: str):
+            self.f47_view = key
+            self.body.content = self.module_f47()
+            self.refresh()
 
-            c_type = c.get("campaignType") or "Khác"
-            if c_type == "Báo cáo khẩn":
-                badge_bg = "#ffebee"
-                badge_fg = "#c62828"
-            elif c_type == "Báo cáo":
-                badge_bg = "#e3f2fd"
-                badge_fg = "#1565c0"
-            elif c_type == "CMT":
-                badge_bg = "#e0f2f1"
-                badge_fg = "#00695c"
-            else:
-                badge_bg = "#f5f5f5"
-                badge_fg = "#616161"
-
-            type_badge = ft.Container(
-                content=ft.Text(c_type, size=10, color=badge_fg, weight=ft.FontWeight.BOLD),
-                bgcolor=badge_bg,
-                border_radius=4,
-                padding=ft.padding.symmetric(horizontal=6, vertical=2),
-                margin=ft.margin.only(right=6),
+        # ── tab bar (custom, không dùng ft.Tabs) ─────────────────
+        def _tab_btn(label: str, key: str) -> ft.Container:
+            active = (current_view == key)
+            return ft.Container(
+                content=ft.Text(
+                    label, size=13,
+                    color=RED if active else TEXT_MUTED,
+                    weight=ft.FontWeight.BOLD if active else ft.FontWeight.NORMAL,
+                ),
+                padding=ft.padding.symmetric(horizontal=16, vertical=10),
+                border=ft.border.only(
+                    bottom=ft.BorderSide(2, RED) if active else ft.BorderSide(0)
+                ),
+                on_click=lambda e, k=key: switch_view(k),
+                ink=True,
             )
 
-            card_obj = ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Row([
-                            type_badge,
-                            ft.Text(c["title"], size=14, weight=ft.FontWeight.BOLD,
-                                    expand=True),
-                            ft.Container(
-                                content=ft.Text("🔴 Live" if c["status"] == "live" else "Done",
-                                                size=10, color=ft.Colors.WHITE,
-                                                weight=ft.FontWeight.BOLD),
-                                bgcolor=RED if c["status"] == "live" else "#999",
-                                border_radius=10,
-                                padding=ft.padding.symmetric(horizontal=8, vertical=3),
-                            ),
-                            *([ft.IconButton(
-                                ft.Icons.MORE_VERT,
-                                icon_size=18,
-                                tooltip="Tuỳ chọn",
-                                on_click=lambda e, _c=c: self.f47_open_camp_menu(_c),
-                            )] if self._is_admin() else []),
-                        ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
-                        ft.Text(f"Phát động bởi đ.c {c['creator']} – {c['creatorRole']}",
-                                size=11, color=TEXT_MUTED),
-                        ft.Text(c["desc"], size=12, color=TEXT_MUTED),
-                        *([
-                            ft.Container(
-                                content=ft.Row([
-                                    ft.Icon(ft.Icons.LINK, size=14, color=BLUE),
-                                    ft.Text(
-                                        c["targetLink"],
-                                        size=11,
-                                        color=BLUE,
-                                        overflow=ft.TextOverflow.ELLIPSIS,
-                                        expand=True
-                                    ),
-                                    ft.Icon(ft.Icons.OPEN_IN_NEW, size=12, color=BLUE)
-                                ], spacing=6),
-                                bgcolor="#eff6ff",
-                                border_radius=6,
-                                padding=ft.padding.symmetric(horizontal=8, vertical=6),
-                                on_click=lambda e, url=c["targetLink"]: self.page.launch_url(url),
-                            )
-                        ] if c.get("targetLink") else []),
+        tab_defs = [
+            ("Chiến dịch", "campaigns"),
+            ("Chia sẻ", "shares"),
+            ("Xếp hạng", "leaderboard"),
+        ]
+
+        tabs_bar = ft.Container(
+            content=ft.Row(
+                [_tab_btn(lbl, key) for lbl, key in tab_defs],
+                spacing=0,
+            ),
+            bgcolor=BG,
+            border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
+            height=44,
+        )
+
+        # ── campaign card ─────────────────────────────────────────
+        def card(c: dict) -> ft.Control:
+            done = len(c.get("submissions") or {})
+            total = len(c.get("members") or [])
+            pct = int(done / total * 100) if total else 0
+            c_type = c.get("campaignType") or "Khác"
+            badge_map = {
+                "Báo cáo khẩn": ("#ffebee", "#c62828"),
+                "Báo cáo":      ("#e3f2fd", "#1565c0"),
+                "CMT":          ("#e0f2f1", "#00695c"),
+            }
+            badge_bg, badge_fg = badge_map.get(c_type, ("#f5f5f5", "#616161"))
+
+            return ft.Container(
+                content=ft.Column([
+                    ft.Row([
                         ft.Container(
-                            content=ft.Row([
-                                ft.Text("⏱", size=18),
-                                ft.Column([ft.Text("Thời gian còn lại", size=11, color="#633806"),
-                                           ft.Text(cd_str(c), size=16, color="#ba7517",
-                                                   weight=ft.FontWeight.BOLD)],
-                                          spacing=0, tight=True),
-                            ], spacing=10),
-                            bgcolor="#fff8e1", border_radius=8, padding=10,
-                            border=ft.border.all(1, "#f0c040"),
+                            content=ft.Text(c_type, size=10, color=badge_fg,
+                                            weight=ft.FontWeight.BOLD),
+                            bgcolor=badge_bg, border_radius=4,
+                            padding=ft.padding.symmetric(horizontal=6, vertical=2),
                         ),
-                        ft.Row([
-                            ft.Text("Tiến độ", size=11, color=TEXT_MUTED),
-                            ft.Text(f"{done}/{total} ({pct}%)", size=11,
-                                    weight=ft.FontWeight.BOLD,
-                                    color=GREEN_MID if pct >= 50 else RED),
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.ProgressBar(value=pct / 100, color=GREEN_MID, bgcolor="#eee", height=8),
-                        ft.Row([
-                            ft.Container(content=ft.Column(
-                                [ft.Text(str(done), size=18, weight=ft.FontWeight.BOLD,
-                                         color=GREEN_MID),
-                                 ft.Text("✅ Đã làm", size=10, color=TEXT_MUTED)],
-                                horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=2),
-                                bgcolor=BG2, border_radius=8, padding=8, expand=True,
-                                alignment=ft.alignment.center),
-                            ft.Container(content=ft.Column(
-                                [ft.Text(str(total - done), size=18, weight=ft.FontWeight.BOLD,
-                                         color=RED),
-                                 ft.Text("❌ Chưa", size=10, color=TEXT_MUTED)],
-                                horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=2),
-                                bgcolor=BG2, border_radius=8, padding=8, expand=True,
-                                alignment=ft.alignment.center),
-                        ], spacing=6),
-                        # Admin / chỉ huy KHÔNG nộp minh chứng — họ là người duyệt
-                        *([ft.ElevatedButton(
-                            "📤 Nộp minh chứng",
-                            on_click=lambda e, _c=c: self.f47_open_submit(_c),
-                            bgcolor=GREEN_MID, color=ft.Colors.WHITE,
-                            width=10000,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=8),
-                                padding=10,
+                        ft.Text(c.get("title") or "", size=14,
+                                weight=ft.FontWeight.BOLD, expand=True),
+                        ft.Container(
+                            content=ft.Text(
+                                "🔴 Live" if c.get("status") == "live" else "Done",
+                                size=10, color=ft.Colors.WHITE,
+                                weight=ft.FontWeight.BOLD,
                             ),
-                        )] if not self._is_admin() else []),
-                    ],
-                    spacing=8,
-                ),
+                            bgcolor=RED if c.get("status") == "live" else "#999",
+                            border_radius=10,
+                            padding=ft.padding.symmetric(horizontal=8, vertical=3),
+                        ),
+                        *([ft.IconButton(
+                            ft.Icons.MORE_VERT, icon_size=18,
+                            tooltip="Tuỳ chọn",
+                            on_click=lambda e, _c=c: self.f47_open_camp_menu(_c),
+                        )] if self._is_admin() else []),
+                    ], vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
+
+                    ft.Text(
+                        f"Phát động bởi đ.c {c.get('creator','')} – {c.get('creatorRole','')}",
+                        size=11, color=TEXT_MUTED,
+                    ),
+                    ft.Text(c.get("desc") or "", size=12, color=TEXT_MUTED),
+
+                    *([ft.Container(
+                        content=ft.Row([
+                            ft.Icon(ft.Icons.LINK, size=14, color=BLUE),
+                            ft.Text(c.get("targetLink",""), size=11, color=BLUE,
+                                    overflow=ft.TextOverflow.ELLIPSIS, expand=True),
+                            ft.Icon(ft.Icons.OPEN_IN_NEW, size=12, color=BLUE),
+                        ], spacing=6),
+                        bgcolor="#eff6ff", border_radius=6,
+                        padding=ft.padding.symmetric(horizontal=8, vertical=6),
+                        on_click=lambda e, url=c.get("targetLink",""): self.page.launch_url(url),
+                    )] if c.get("targetLink") else []),
+
+                    ft.Container(
+                        content=ft.Row([
+                            ft.Text("⏱", size=18),
+                            ft.Column([
+                                ft.Text("Thời gian còn lại", size=11, color="#633806"),
+                                ft.Text(cd_str(c), size=16, color="#ba7517",
+                                        weight=ft.FontWeight.BOLD),
+                            ], spacing=0, tight=True),
+                        ], spacing=10),
+                        bgcolor="#fff8e1", border_radius=8, padding=10,
+                        border=ft.border.all(1, "#f0c040"),
+                    ),
+
+                    ft.Row([
+                        ft.Text("Tiến độ", size=11, color=TEXT_MUTED),
+                        ft.Text(f"{done}/{total} ({pct}%)", size=11,
+                                weight=ft.FontWeight.BOLD,
+                                color=GREEN_MID if pct >= 50 else RED),
+                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                    ft.ProgressBar(value=pct/100, color=GREEN_MID, bgcolor="#eee", height=8),
+
+                    ft.Row([
+                        ft.Container(
+                            content=ft.Column([
+                                ft.Text(str(done), size=18, weight=ft.FontWeight.BOLD,
+                                        color=GREEN_MID),
+                                ft.Text("✅ Đã làm", size=10, color=TEXT_MUTED),
+                            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=2),
+                            bgcolor=BG2, border_radius=8, padding=8, expand=True,
+                            alignment=ft.alignment.center,
+                        ),
+                        ft.Container(
+                            content=ft.Column([
+                                ft.Text(str(total - done), size=18,
+                                        weight=ft.FontWeight.BOLD, color=RED),
+                                ft.Text("❌ Chưa", size=10, color=TEXT_MUTED),
+                            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=2),
+                            bgcolor=BG2, border_radius=8, padding=8, expand=True,
+                            alignment=ft.alignment.center,
+                        ),
+                    ], spacing=6),
+
+                    *([ft.ElevatedButton(
+                        "📤 Nộp minh chứng",
+                        on_click=lambda e, _c=c: self.f47_open_submit(_c),
+                        bgcolor=GREEN_MID, color=ft.Colors.WHITE,
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=8),
+                            padding=10,
+                        ),
+                    )] if not self._is_admin() else []),
+                ], spacing=8),
                 bgcolor=BG, border=ft.border.all(1, BORDER), border_radius=12,
                 padding=14, margin=ft.margin.only(bottom=10),
                 on_click=lambda e, _c=c: self.f47_open_campaign_detail(_c),
                 ink=True,
             )
-            return make_hoverable_card(card_obj)
 
+        # ── campaigns view ────────────────────────────────────────
+        def campaigns_view() -> ft.Control:
+            items: list[ft.Control] = []
+            for c in camps:
+                try:
+                    items.append(card(c))
+                except Exception:
+                    pass
+            if not items:
+                items = [ft.Container(
+                    content=ft.Column([
+                        ft.Container(height=60),
+                        ft.Text("📭 Chưa có chiến dịch nào",
+                                text_align=ft.TextAlign.CENTER,
+                                color=TEXT_MUTED, size=14),
+                        ft.Container(height=8),
+                        ft.Text("Bấm nút + ở góc phải để phát động",
+                                text_align=ft.TextAlign.CENTER,
+                                color=TEXT_MUTED, size=12),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                    padding=20,
+                )]
+            return ft.ListView(controls=items, expand=True, padding=10, spacing=0)
+
+        # ── shares view ───────────────────────────────────────────
+        def shares_view() -> ft.Control:
+            shares = sorted(
+                store.get("dailyShares", store.seed_daily_shares),
+                key=lambda s: s.get("at", 0), reverse=True,
+            )
+            today_start = int(time.time() // 86400) * 86400 * 1000
+            today_count = sum(1 for s in shares if s.get("at", 0) >= today_start)
+            my_uid = AUTH_STATE.get("uid") or ""
+            my_today = sum(1 for s in shares
+                           if s.get("at", 0) >= today_start and s.get("userId") == my_uid)
+
+            def share_item(s: dict) -> ft.Control:
+                user_name = s.get("userName") or "?"
+                platform = s.get("platform") or ""
+                links = s.get("links") or []
+                images = s.get("images") or []
+                note = s.get("note") or ""
+                at_txt = time_ago(s.get("at", 0))
+                ctrls: list[ft.Control] = [
+                    ft.Row([
+                        ft.Container(
+                            content=ft.Text(initials(user_name, 2),
+                                            color=ft.Colors.WHITE, size=11,
+                                            weight=ft.FontWeight.BOLD),
+                            bgcolor=GREEN_DARK, width=32, height=32,
+                            border_radius=16, alignment=ft.alignment.center,
+                        ),
+                        ft.Column([
+                            ft.Text(user_name, size=13, weight=ft.FontWeight.W_700),
+                            ft.Text(f"{platform} • {at_txt}", size=10, color=TEXT_MUTED),
+                        ], spacing=2, expand=True, tight=True),
+                    ], spacing=10, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                ]
+                if note:
+                    ctrls.append(ft.Text(note, size=12, color=TEXT))
+                for url in links[:3]:
+                    ctrls.append(ft.Container(
+                        content=ft.Row([
+                            ft.Icon(ft.Icons.LINK, size=14, color=BLUE),
+                            ft.Text(url, size=11, color=BLUE,
+                                    overflow=ft.TextOverflow.ELLIPSIS, expand=True),
+                        ], spacing=6),
+                        bgcolor="#eff6ff", border_radius=6,
+                        padding=ft.padding.symmetric(horizontal=8, vertical=5),
+                    ))
+                if images:
+                    ctrls.append(ft.Text(f"📎 {len(images)} ảnh", size=11, color=TEXT_MUTED))
+                return ft.Container(
+                    content=ft.Column(ctrls, spacing=6, tight=True),
+                    bgcolor=BG, border=ft.border.all(1, BORDER), border_radius=10,
+                    padding=12, margin=ft.margin.only(bottom=8),
+                )
+
+            counter = ft.Container(
+                content=ft.Row([
+                    ft.Column([
+                        ft.Text(str(my_today), size=22, weight=ft.FontWeight.BOLD,
+                                color=GREEN_DARK),
+                        ft.Text("Bài của tôi hôm nay", size=10, color=TEXT_MUTED),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                       spacing=2, tight=True, expand=True),
+                    ft.VerticalDivider(width=1, color=BORDER),
+                    ft.Column([
+                        ft.Text(str(today_count), size=22, weight=ft.FontWeight.BOLD,
+                                color=BLUE),
+                        ft.Text("Toàn đơn vị hôm nay", size=10, color=TEXT_MUTED),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                       spacing=2, tight=True, expand=True),
+                    ft.VerticalDivider(width=1, color=BORDER),
+                    ft.Column([
+                        ft.Text(str(len(shares)), size=22, weight=ft.FontWeight.BOLD,
+                                color=AMBER),
+                        ft.Text("Tổng bài chia sẻ", size=10, color=TEXT_MUTED),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                       spacing=2, tight=True, expand=True),
+                ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                bgcolor="#f0f9f4", border_radius=10, padding=12,
+                margin=ft.margin.only(bottom=10),
+                border=ft.border.all(1, "#c8e6c9"),
+            )
+
+            items: list[ft.Control] = [counter]
+            if shares:
+                items += [share_item(s) for s in shares[:100]]
+            else:
+                items.append(ft.Container(
+                    content=ft.Column([
+                        ft.Text("📭 Chưa có bài chia sẻ nào",
+                                text_align=ft.TextAlign.CENTER,
+                                color=TEXT_MUTED, size=14),
+                        ft.Text("Bấm nút + ở góc phải để chia sẻ",
+                                text_align=ft.TextAlign.CENTER,
+                                color=TEXT_MUTED, size=12),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
+                    padding=20,
+                ))
+            return ft.ListView(controls=items, expand=True, padding=10, spacing=0)
+
+        # ── leaderboard view ──────────────────────────────────────
         def leaderboard_view() -> ft.Control:
-            # 2 trục lọc: nguồn (camp/share) × cấp (person/unit)
-            lb_source = getattr(self, "lb_source", "camp")  # "camp" hoặc "share"
-            lb_level = getattr(self, "lb_level", "person")  # "person" hoặc "unit"
+            lb_source = getattr(self, "lb_source", "camp")
+            lb_level  = getattr(self, "lb_level",  "person")
             unit_name_map = self._unit_name_map(store.get("units", store.seed_units))
 
-            # Build danh sách item thô (mỗi minh chứng / mỗi share là 1 row)
-            events: list[dict] = []  # {uid, unitId, at, name}
+            events: list[dict] = []
             if lb_source == "camp":
                 for c in camps:
                     subs = c.get("submissions") or {}
@@ -9703,8 +10397,7 @@ class App:
                                 "name": s.get("name") or "",
                             })
             else:
-                shares = store.get("dailyShares", store.seed_daily_shares)
-                for sh in shares:
+                for sh in store.get("dailyShares", store.seed_daily_shares):
                     uid = str(sh.get("userId") or "")
                     s = soldier_by_id.get(uid) or {}
                     events.append({
@@ -9714,32 +10407,22 @@ class App:
                         "name": sh.get("userName") or s.get("name") or "",
                     })
 
-            # Tổng hợp theo person hoặc unit
             scores: dict[str, dict] = {}
             for ev in events:
-                if lb_level == "person":
-                    key = ev["uid"]
-                    if not key:
-                        continue
-                    label = ev.get("name") or key
-                else:
-                    key = ev.get("unitId") or "unknown"
-                    label = unit_name_map.get(key, "Khác")
-                it = scores.setdefault(key, {
-                    "count": 0, "lastAt": 0, "name": label,
-                })
+                key = ev["uid"] if lb_level == "person" else (ev.get("unitId") or "unknown")
+                if not key:
+                    continue
+                label = (ev.get("name") or key) if lb_level == "person" \
+                        else unit_name_map.get(key, "Khác")
+                it = scores.setdefault(key, {"count": 0, "lastAt": 0, "name": label})
                 it["count"] += 1
                 if ev["at"] > it["lastAt"]:
                     it["lastAt"] = ev["at"]
-                if not it.get("name"):
-                    it["name"] = label
 
             ranked = sorted(scores.items(),
                             key=lambda kv: (kv[1]["count"], kv[1]["lastAt"]),
                             reverse=True)
-            rows = []
 
-            # Header bar: chip filter
             def _chip(text: str, selected: bool, on_click) -> ft.Container:
                 return ft.Container(
                     content=ft.Text(text, size=11,
@@ -9748,77 +10431,51 @@ class App:
                     bgcolor=GREEN_MID if selected else BG2,
                     border_radius=14,
                     padding=ft.padding.symmetric(horizontal=12, vertical=6),
-                    on_click=on_click,
-                    ink=True,
+                    on_click=on_click, ink=True,
                 )
-
-            def _set_source(v):
-                self.lb_source = v
-                self.body.content = self.module_f47()
-                self.refresh()
-
-            def _set_level(v):
-                self.lb_level = v
-                self.body.content = self.module_f47()
-                self.refresh()
 
             chip_bar = ft.Container(
                 content=ft.Column([
                     ft.Row([
                         ft.Text("Nguồn:", size=11, color=TEXT_MUTED, width=50),
                         _chip("🛡 Chiến dịch", lb_source == "camp",
-                              lambda e: _set_source("camp")),
+                              lambda e: (setattr(self, "lb_source", "camp"),
+                                         switch_view("leaderboard"))),
                         _chip("📤 Chia sẻ", lb_source == "share",
-                              lambda e: _set_source("share")),
+                              lambda e: (setattr(self, "lb_source", "share"),
+                                         switch_view("leaderboard"))),
                     ], spacing=6),
                     ft.Row([
                         ft.Text("Cấp:", size=11, color=TEXT_MUTED, width=50),
                         _chip("👤 Cá nhân", lb_level == "person",
-                              lambda e: _set_level("person")),
+                              lambda e: (setattr(self, "lb_level", "person"),
+                                         switch_view("leaderboard"))),
                         _chip("🏢 Đơn vị", lb_level == "unit",
-                              lambda e: _set_level("unit")),
+                              lambda e: (setattr(self, "lb_level", "unit"),
+                                         switch_view("leaderboard"))),
                     ], spacing=6),
                 ], spacing=6),
                 padding=ft.padding.symmetric(horizontal=10, vertical=8),
-                bgcolor=BG, border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
+                bgcolor=BG,
+                border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
             )
 
             if not ranked:
-                empty_msg = (
-                    "Chưa có ai nộp minh chứng nào." if lb_source == "camp"
-                    else "Chưa có bài chia sẻ nào."
-                )
                 return ft.Column([
                     chip_bar,
                     ft.Container(
-                        content=ft.Column([
-                            ft.Container(height=40),
-                            ft.Text(empty_msg, size=13, color=TEXT_MUTED,
-                                    text_align=ft.TextAlign.CENTER),
-                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                        padding=20, expand=True,
+                        content=ft.Text(
+                            "Chưa có dữ liệu xếp hạng.",
+                            size=13, color=TEXT_MUTED,
+                            text_align=ft.TextAlign.CENTER,
+                        ),
+                        padding=40, alignment=ft.alignment.center, expand=True,
                     ),
                 ], spacing=0, expand=True)
 
-            if not ranked:
-                return ft.Container(
-                    content=ft.Column(
-                        [
-                            ft.Container(height=60),
-                            ft.Text("Chưa có dữ liệu xếp hạng", size=14, color=TEXT_MUTED,
-                                    text_align=ft.TextAlign.CENTER),
-                            ft.Text("Hãy nộp minh chứng trong một chiến dịch để lên bảng xếp hạng.",
-                                    size=12, color=TEXT_MUTED, text_align=ft.TextAlign.CENTER),
-                        ],
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                        spacing=8,
-                    ),
-                    padding=20,
-                )
-
             unit_label = "🛡 minh chứng" if lb_source == "camp" else "📤 chia sẻ"
 
-            def rank_row(idx: int, key: str, info: dict) -> ft.Container:
+            def rank_row(idx: int, key: str, info: dict) -> ft.Control:
                 if lb_level == "person":
                     s = soldier_by_id.get(key) or {}
                     display = (
@@ -9827,321 +10484,48 @@ class App:
                     )
                 else:
                     display = info.get("name") or key
-                medal = "🥇" if idx == 0 else ("🥈" if idx == 1 else ("🥉" if idx == 2 else f"#{idx+1}"))
-                last = info.get("lastAt", 0) or 0
-                last_txt = fmt_dt(int(last)) if last else "-"
-                breakdown = f"{info.get('count', 0)} {unit_label}"
+                medal = "🥇" if idx == 0 else ("🥈" if idx == 1 else
+                        ("🥉" if idx == 2 else f"#{idx+1}"))
+                last_txt = fmt_dt(int(info.get("lastAt") or 0)) if info.get("lastAt") else "-"
                 return ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Text(str(medal), size=14, width=40),
-                            ft.Column(
-                                [
-                                    ft.Text(display, size=13, weight=ft.FontWeight.W_700),
-                                    ft.Text(breakdown, size=10, color=TEXT_MUTED),
-                                    ft.Text(f"Hoạt động gần nhất: {last_txt}",
-                                            size=10, color=TEXT_MUTED),
-                                ],
-                                spacing=2, tight=True, expand=True,
-                            ),
-                            ft.Container(
-                                content=ft.Text(str(info.get("count", 0)), size=12,
-                                                color=ft.Colors.WHITE,
-                                                weight=ft.FontWeight.BOLD),
-                                bgcolor=GREEN_MID, border_radius=12,
-                                padding=ft.padding.symmetric(horizontal=10, vertical=6),
-                            ),
-                        ],
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
+                    content=ft.Row([
+                        ft.Text(str(medal), size=14, width=40),
+                        ft.Column([
+                            ft.Text(display, size=13, weight=ft.FontWeight.W_700),
+                            ft.Text(f"{info.get('count',0)} {unit_label}",
+                                    size=10, color=TEXT_MUTED),
+                            ft.Text(f"Gần nhất: {last_txt}", size=10, color=TEXT_MUTED),
+                        ], spacing=2, tight=True, expand=True),
+                        ft.Container(
+                            content=ft.Text(str(info.get("count", 0)), size=12,
+                                            color=ft.Colors.WHITE,
+                                            weight=ft.FontWeight.BOLD),
+                            bgcolor=GREEN_MID, border_radius=12,
+                            padding=ft.padding.symmetric(horizontal=10, vertical=6),
+                        ),
+                    ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
                     bgcolor=BG, border=ft.border.all(1, BORDER),
-                    border_radius=12, padding=12,
-                    margin=ft.margin.only(bottom=8),
+                    border_radius=12, padding=12, margin=ft.margin.only(bottom=8),
                 )
 
-            for i, (key, info) in enumerate(ranked[:50]):
-                rows.append(rank_row(i, key, info))
-
-            title_txt = (
-                f"🏆 Xếp hạng "
-                + ("Chiến dịch" if lb_source == "camp" else "Chia sẻ")
-                + " — "
-                + ("Cá nhân" if lb_level == "person" else "Đơn vị")
-            )
-
-            # Integrate BarChart when level is unit
-            chart_container = []
-            if lb_level == "unit" and ranked:
-                chart_bars = []
-                legend_items = []
-                colors = [str(GREEN_DARK), str(GREEN_MID), str(AMBER), str(BLUE), str(PURPLE)]
-                for idx, (key, info) in enumerate(ranked[:5]):
-                    count = info.get("count", 0)
-                    col = colors[idx % len(colors)]
-                    chart_bars.append(
-                        ft.BarChartGroup(
-                            x=idx,
-                            bar_rods=[
-                                ft.BarChartRod(
-                                    from_y=0,
-                                    to_y=count,
-                                    width=18,
-                                    color=col,
-                                    border_radius=4,
-                                )
-                            ],
-                        )
-                    )
-                    unit_short = info.get("name", "")
-                    if len(unit_short) > 12:
-                        unit_short = unit_short[:10] + ".."
-                    legend_items.append(
-                        ft.Row([
-                            ft.Container(width=10, height=10, border_radius=5, bgcolor=col),
-                            ft.Text(f"{unit_short} ({count})", size=10, weight=ft.FontWeight.W_500),
-                        ], spacing=4, tight=True)
-                    )
-                
-                bar_chart = ft.BarChart(
-                    bar_groups=chart_bars,
-                    height=120,
-                    horizontal_grid_lines=ft.ChartGridLines(
-                        color=ft.Colors.with_opacity(0.1, "#000000"),
-                        width=1,
-                        dash_pattern=[3, 3],
-                    ),
-                )
-                
-                chart_container.append(
-                    ft.Container(
-                        content=ft.Column([
-                            ft.Text("BIỂU ĐỒ THỐNG KÊ HOẠT ĐỘNG TOP 5 ĐƠN VỊ", size=10, weight=ft.FontWeight.BOLD, color=TEXT_MUTED),
-                            ft.Container(content=bar_chart, padding=ft.padding.symmetric(vertical=6)),
-                            ft.Row(legend_items, wrap=True, alignment=ft.MainAxisAlignment.CENTER, spacing=10),
-                        ], spacing=6),
-                        bgcolor=BG, border=ft.border.all(1, BORDER), border_radius=12,
-                        padding=12, margin=ft.margin.only(bottom=12),
-                    )
-                )
+            rows = [rank_row(i, k, info) for i, (k, info) in enumerate(ranked[:50])]
 
             return ft.Column([
                 chip_bar,
-                ft.ListView(
-                    controls=[ft.Container(
-                        content=ft.Column(
-                            [
-                                *chart_container,
-                                ft.Container(
-                                    content=ft.Text(title_txt, size=13,
-                                                    weight=ft.FontWeight.BOLD),
-                                    padding=ft.padding.only(bottom=8),
-                                ),
-                                *rows,
-                            ],
-                            spacing=0,
-                        ),
-                        padding=10,
-                    )],
-                    expand=True, padding=0,
-                ),
+                ft.ListView(controls=rows, expand=True, padding=10, spacing=0),
             ], spacing=0, expand=True)
 
-        # ---- VIEW: Chia sẻ ----
-        def shares_view() -> ft.Control:
-            shares = sorted(
-                store.get("dailyShares", store.seed_daily_shares),
-                key=lambda s: s.get("at", 0), reverse=True,
-            )
-            today_start = int(time.time() // 86400) * 86400 * 1000
-            today_count = sum(1 for s in shares if s.get("at", 0) >= today_start)
-            my_uid = AUTH_STATE.get("uid") or ""
-            my_today = sum(1 for s in shares
-                           if s.get("at", 0) >= today_start and s.get("userId") == my_uid)
-
-            def share_item(s: dict) -> ft.Container:
-                user_name = s.get("userName") or "?"
-                platform = s.get("platform") or ""
-                links = s.get("links") or []
-                images = s.get("images") or []
-                note = s.get("note") or ""
-                at_txt = time_ago(s.get("at", 0))
-                ctrls = [
-                    ft.Row(
-                        [
-                            ft.Container(
-                                content=ft.Text(initials(user_name, 2),
-                                                color=ft.Colors.WHITE, size=11,
-                                                weight=ft.FontWeight.BOLD),
-                                bgcolor=GREEN_DARK, width=32, height=32,
-                                border_radius=16, alignment=ft.alignment.center,
-                            ),
-                            ft.Column(
-                                [
-                                    ft.Text(user_name, size=13, weight=ft.FontWeight.W_700),
-                                    ft.Text(f"{platform} • {at_txt}", size=10, color=TEXT_MUTED),
-                                ],
-                                spacing=2, expand=True, tight=True,
-                            ),
-                        ],
-                        spacing=10, vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                ]
-                if note:
-                    ctrls.append(ft.Text(note, size=12, color=TEXT))
-                for url in links[:3]:
-                    ctrls.append(
-                        ft.Container(
-                            content=ft.Row(
-                                [ft.Icon(ft.Icons.LINK, size=14, color=BLUE),
-                                 ft.Text(url, size=11, color=BLUE,
-                                         overflow=ft.TextOverflow.ELLIPSIS, expand=True)],
-                                spacing=6,
-                            ),
-                            bgcolor="#eff6ff", border_radius=6,
-                            padding=ft.padding.symmetric(horizontal=8, vertical=5),
-                        )
-                    )
-                if images:
-                    ctrls.append(ft.Text(f"📎 {len(images)} ảnh đính kèm",
-                                         size=11, color=TEXT_MUTED))
-                return ft.Container(
-                    content=ft.Column(ctrls, spacing=6, tight=True),
-                    bgcolor=BG, border=ft.border.all(1, BORDER), border_radius=10,
-                    padding=12, margin=ft.margin.only(bottom=8),
-                )
-
-            counter_card = ft.Container(
-                content=ft.Row(
-                    [
-                        ft.Column(
-                            [ft.Text(str(my_today), size=22,
-                                     weight=ft.FontWeight.BOLD, color=GREEN_DARK),
-                             ft.Text("Bài của tôi hôm nay", size=10, color=TEXT_MUTED)],
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            spacing=2, tight=True, expand=True,
-                        ),
-                        ft.VerticalDivider(width=1, color=BORDER),
-                        ft.Column(
-                            [ft.Text(str(today_count), size=22,
-                                     weight=ft.FontWeight.BOLD, color=BLUE),
-                             ft.Text("Toàn đơn vị hôm nay", size=10, color=TEXT_MUTED)],
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            spacing=2, tight=True, expand=True,
-                        ),
-                        ft.VerticalDivider(width=1, color=BORDER),
-                        ft.Column(
-                            [ft.Text(str(len(shares)), size=22,
-                                     weight=ft.FontWeight.BOLD, color=AMBER),
-                             ft.Text("Tổng bài chia sẻ", size=10, color=TEXT_MUTED)],
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            spacing=2, tight=True, expand=True,
-                        ),
-                    ],
-                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                ),
-                bgcolor="#f0f9f4", border_radius=10,
-                padding=12, margin=ft.margin.only(bottom=10),
-                border=ft.border.all(1, "#c8e6c9"),
-            )
-
-            list_items = [counter_card]
-            if shares:
-                list_items.extend(share_item(s) for s in shares[:100])
-            else:
-                list_items.append(ft.Container(
-                    content=ft.Column(
-                        [
-                            ft.Container(height=20),
-                            ft.Text("📭 Chưa có bài chia sẻ nào",
-                                    text_align=ft.TextAlign.CENTER,
-                                    color=TEXT_MUTED, size=14),
-                            ft.Text("Bấm nút  +  ở góc phải để chia sẻ bài đầu tiên",
-                                    text_align=ft.TextAlign.CENTER,
-                                    color=TEXT_MUTED, size=12),
-                        ],
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6,
-                    ),
-                    padding=20,
-                ))
-
-            return ft.ListView(
-                controls=[ft.Container(
-                    content=ft.Column(list_items, spacing=0),
-                    padding=10,
-                )],
-                expand=True,
-            )
-
-        # Nội dung chính (back bar + list)
-        tab_defs = [
-            ("Chiến dịch", "campaigns"),
-            ("Chia sẻ", "shares"),
-            ("Xếp hạng", "leaderboard"),
-        ]
-        selected_idx = next((i for i, (_, k) in enumerate(tab_defs) if k == current_view), 0)
-
-        def on_tab_changed(e):
-            idx = None
-            try:
-                idx = e.control.selected_index
-            except Exception:
-                idx = getattr(e, "selected_index", None)
-            if idx is None:
-                return
-            if 0 <= idx < len(tab_defs):
-                self.f47_view = tab_defs[idx][1]
-                self.body.content = self.module_f47()
-                self.refresh()
-
-        # Tabs only — back arrow đã chuyển lên top header chính
-        tabs_bar = ft.Container(
-            content=ft.Tabs(
-                selected_index=selected_idx,
-                on_change=on_tab_changed,
-                tabs=[ft.Tab(text=label) for label, _ in tab_defs],
-            ),
-            bgcolor=BG,
-            border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
-            padding=ft.padding.symmetric(horizontal=10, vertical=4),
-        )
-
-        campaigns_list = ft.ListView(
-            controls=[ft.Container(
-                content=ft.Column([card(c) for c in camps], spacing=0)
-                        if camps else
-                        ft.Column([
-                            ft.Container(height=80),
-                            ft.Text("📭 Chưa có chiến dịch nào",
-                                    text_align=ft.TextAlign.CENTER,
-                                    color=TEXT_MUTED, size=14),
-                            ft.Container(height=10),
-                            ft.Text("Bấm nút  +  ở góc phải dưới để phát động",
-                                    text_align=ft.TextAlign.CENTER,
-                                    color=TEXT_MUTED, size=12),
-                        ]),
-                padding=10,
-            )],
-            expand=True,
-        )
-
+        # ── assemble ──────────────────────────────────────────────
         if current_view == "campaigns":
-            main_body = campaigns_list
+            main_body = campaigns_view()
         elif current_view == "shares":
             main_body = shares_view()
         else:
             main_body = leaderboard_view()
 
-        # Bỏ module_back_bar — back arrow đã gộp vào tabs_bar để tiết kiệm không gian
-        body_col = ft.Column(
-            [
-                tabs_bar,
-                main_body,
-            ],
-            spacing=0,
-            expand=True,
-        )
+        body_col = ft.Column([tabs_bar, main_body], spacing=0, expand=True)
 
-        # FAB ở góc phải dưới — đổi icon + tooltip + on_click theo tab hiện tại
+        # FAB
         profile = store.get("userProfile", store.seed_user_profile)
         my_admin_level = int(profile.get("adminLevel") or 1)
         can_create = self._is_admin() or my_admin_level >= 2
@@ -10166,8 +10550,21 @@ class App:
         if fab_ctrl is None:
             return body_col
         fab = ft.Container(content=fab_ctrl, right=16, bottom=16)
-        return ft.Stack([body_col, fab], expand=True)
+        return ft.Container(content=ft.Stack([body_col, fab]), expand=True)
 
+
+
+        def cd_str(c) -> str:
+            left = int(c.get("deadline") or 0) - store.now_ms()
+            if left <= 0:
+                return "Hết giờ"
+            h, rem = divmod(left, 3600_000)
+            m, _ = divmod(rem, 60_000)
+            return f"{h:02d}h {m:02d}m"
+
+        def card(c: dict) -> ft.Container:
+            done = len(c.get("submissions") or {})
+            total = len(c.get("members") or [])
     # ============================================================
     # ===== VIEW: DANH BẠ                                     =====
     # ============================================================
@@ -10220,20 +10617,25 @@ class App:
         j = next((i for i, x in enumerate(soldiers) if str(x.get("id")) == str(soldier_id)), None)
         if j is not None:
             soldiers[j]["accountStatus"] = "active"
+            # Override 120s để tránh background sync ghi đè
+            store.set_account_status_override(soldier_id, "active", ttl_seconds=120.0)
+            # Lưu local ngay lập tức
             store.set_value("soldiers", soldiers)
-            if _looks_like_firebase_uid(soldier_id):
+            self.toast("✅ Đã duyệt tài khoản")
+            # Refresh UI ngay
+            if self.current_module == "units":
+                self.body.content = self.module_units()
+            self.refresh()
+            # Push Firestore trong background — không block UI
+            def _push():
                 try:
-                    FS.set_doc(f"users/{soldier_id}", {"accountStatus": "active"})
+                    if _looks_like_firebase_uid(soldier_id):
+                        FS.set_doc(f"users/{soldier_id}", {"accountStatus": "active"})
+                    store.STORE.flush_pending()
                 except Exception:
                     pass
-            self.toast("✅ Đã duyệt tài khoản")
-            # Refresh currently viewing screen
-            if self.tab == "profile" or self.overlay_from_tab == "profile":
-                self.body.content = self.view_member_profile(soldier_id)
-            elif self.tab == "unit" or self.tab == "util":
-                if self.current_module == "units":
-                    self.body.content = self.module_units()
-            self.refresh()
+            import threading
+            threading.Thread(target=_push, daemon=True).start()
 
     def view_member_profile(self, soldier_id: str) -> ft.Control:
         soldiers = store.get("soldiers", store.seed_soldiers)
@@ -10552,11 +10954,11 @@ class App:
                 width=320
             ),
             actions=[
-                ft.TextButton("Hủy", on_click=lambda _: _close_dialog(page)),
+                ft.TextButton("Hủy", on_click=lambda _: _close_dialog(self.page)),
                 ft.ElevatedButton("Lưu", on_click=save_presence, bgcolor=GREEN_MID, color=ft.Colors.WHITE)
             ]
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def open_change_avatar(self) -> None:
         page = self.page
@@ -10567,17 +10969,22 @@ class App:
         def on_pick(e: ft.FilePickerResultEvent):
             if not e.files:
                 return
-            fp = e.files[0].path
-            if not fp:
-                self.toast("Không đọc được file")
-                return
+            f0 = e.files[0]
+            fp = f0.path
             uid = str(AUTH_STATE.get("localId") or AUTH_STATE.get("uid") or "")
             if not uid:
                 self.toast("⚠️ Chưa đăng nhập — thử login lại")
                 return
             try:
-                remote = fb_storage.make_remote_path(f"avatars/{uid}", Path(fp).name)
-                res = fb_storage.upload_file(fp, remote, AUTH_STATE["idToken"])
+                fname = Path(fp).name if fp else (f0.name or "avatar.jpg")
+                remote = fb_storage.make_remote_path(f"avatars/{uid}", fname)
+                if fp:
+                    res = fb_storage.upload_file(fp, remote, AUTH_STATE["idToken"])
+                elif f0.bytes:
+                    res = fb_storage.upload_data(remote, f0.bytes, AUTH_STATE["idToken"], fname)
+                else:
+                    self.toast("Không đọc được file")
+                    return
                 url = str(res.get("downloadURL") or "")
                 if not url:
                     self.toast("⚠️ Upload không trả về URL")
@@ -10788,7 +11195,7 @@ class App:
                 except Exception:
                     pass
             store.log_activity(f"Admin sửa hồ sơ: {uname}")
-            _close_dialog(page)
+            _close_dialog(self.page)
             self.toast("Đã lưu hồ sơ")
             if getattr(self, "overlay_soldier_id", None) == sid:
                 self.body.content = self.view_member_profile(sid)
@@ -10807,11 +11214,11 @@ class App:
                 width=380, height=540,
             ),
             actions=[
-                ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(page)),
+                ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(self.page)),
                 ft.ElevatedButton("Lưu", on_click=save, bgcolor=GREEN_MID, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def confirm_delete_soldier(self, soldier_id: str) -> None:
         my_profile = store.get("userProfile", store.seed_user_profile)
@@ -10846,7 +11253,7 @@ class App:
                              if str(x.get("id")) != sid]
                 store.set_value("soldiers", soldiers2)
             store.log_activity(f"Admin xóa khỏi danh sách: {row.get('username')}")
-            _close_dialog(page)
+            _close_dialog(self.page)
             self.toast("Đã xóa khỏi danh sách")
             if getattr(self, "overlay_soldier_id", None) == sid:
                 self.overlay_soldier_id = None
@@ -10864,11 +11271,11 @@ class App:
                 size=13,
             ),
             actions=[
-                ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(page)),
+                ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(self.page)),
                 ft.ElevatedButton("Xóa", on_click=do_delete, bgcolor=RED, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def open_add_position_dialog(self, unit_node: dict) -> None:
         """Mở hộp thoại thêm chức danh mới vào một đơn vị (cây đơn vị)."""
@@ -10975,7 +11382,7 @@ class App:
                                   bgcolor=GREEN_MID, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def _iter_units(self, node: dict):
         """Duyệt mọi node trong cây đơn vị (helper)."""
@@ -11231,7 +11638,7 @@ class App:
             ),
             actions=[ft.TextButton("Đóng", on_click=lambda e: close_dlg())],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def _chat_confirm_delete_both(self, rid: str, name: str) -> None:
         """Xoá phòng cho cả 2 bên — DM thì ai cũng được; nhóm chỉ
@@ -11286,13 +11693,13 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton("Xoá hẳn", on_click=do,
                                   bgcolor=RED, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def _chat_confirm_hide(self, rid: str, name: str) -> None:
         """Xác nhận trước khi ẩn phòng khỏi list."""
@@ -11324,13 +11731,13 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton("Ẩn", on_click=do,
                                   bgcolor=RED, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def _open_dm(self, s: dict) -> None:
         # DM room id phải DETERMINISTIC giữa 2 người (sort uid) — tránh 2 phòng
@@ -11382,7 +11789,8 @@ class App:
                         [
                             self._soldier_avatar(p.get("name") or "", str(p.get("photoUrl") or ""), 64),
                             ft.Column(
-                                [ft.Text(p.get("name") or "Không tên", color=ft.Colors.WHITE, size=18,
+                                [ft.Text(p.get("name") or p.get("username") or "Không tên",
+                                         color=ft.Colors.WHITE, size=18,
                                          weight=ft.FontWeight.BOLD),
                                  ft.Text(f"{p.get('rank') or ''} • {p.get('role') or ''}",
                                          color=ft.Colors.WHITE70, size=12),
@@ -11540,11 +11948,11 @@ class App:
                 width=380,
             ),
             actions=[
-                ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(page)),
+                ft.TextButton("Huỷ", on_click=lambda e: _close_dialog(self.page)),
                 ft.ElevatedButton("Lưu", on_click=save, bgcolor=GREEN_MID, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def module_awards(self) -> ft.Control:
         """Màn Thành tích - Khen thưởng."""
@@ -11701,13 +12109,13 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton("Đổi mật khẩu", on_click=do_change,
                                   bgcolor=GREEN_MID, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def open_notif_settings(self) -> None:
         """Cài đặt thông báo (lưu cục bộ + Firestore)."""
@@ -11748,13 +12156,13 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.ElevatedButton("Lưu", on_click=save,
                                   bgcolor=GREEN_MID, color=ft.Colors.WHITE),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def open_app_settings(self) -> None:
         """Cài đặt ứng dụng: thông tin user, đồng bộ thủ công, xoá cache."""
@@ -11835,13 +12243,15 @@ class App:
             actions=[
                 ft.TextButton(
                     "Đóng",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def confirm_logout(self) -> None:
+        page = self.page
+
         def do_logout(e):
             _dlg.open = False
             self.stop_realtime_sync()
@@ -11854,12 +12264,12 @@ class App:
             actions=[
                 ft.TextButton(
                     "Huỷ",
-                    on_click=lambda e: _close_dialog(page),
+                    on_click=lambda e: _close_dialog(self.page),
                 ),
                 ft.TextButton("Đăng xuất", on_click=do_logout),
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     # ============================================================
     # ===== VIEW: TẤT CẢ THÔNG BÁO                            =====
@@ -11886,8 +12296,13 @@ class App:
 
         def row(n: dict) -> ft.Container:
             color = {"urgent": RED, "f47": BLUE, "unit": AMBER,
-                     "ctdctct": GREEN_DARK,
+                     "ctdctct": GREEN_DARK, "guest": "#8855cc", "warning": AMBER,
                      "success": GREEN_MID}.get(n["type"], "#999")
+            _sender = (n.get("senderName") or "").strip()
+            _meta_parts = []
+            if _sender:
+                _meta_parts.append(f"👤 {_sender}")
+            _meta_parts.append(time_ago(n["at"]))
             return ft.Container(
                 content=ft.Row(
                     [
@@ -11898,7 +12313,7 @@ class App:
                                      weight=ft.FontWeight.BOLD if not n["read"]
                                      else ft.FontWeight.W_500),
                              ft.Text(n["desc"], size=11, color=TEXT_MUTED, max_lines=2),
-                             ft.Text(time_ago(n["at"]), size=10, color=TEXT_MUTED)],
+                             ft.Text("  •  ".join(_meta_parts), size=10, color=TEXT_MUTED)],
                             spacing=2, expand=True, tight=True,
                         ),
                         ft.IconButton(
@@ -11979,18 +12394,37 @@ class App:
         my_admin = int(my_profile.get("adminLevel") or 0)
         is_commander = (my_admin >= 2) or self._is_top_commander(my_uid) or ((my_profile.get("unitId") or "").startswith("u-bch"))
 
-        # Fetch data
-        try:
-            exams = FS.list_collection("exams") or []
-        except Exception:
-            exams = []
-        exams.sort(key=lambda x: x.get("createdAt", 0), reverse=True)
+        # Dùng cache — không block UI thread
+        exams = store.get("_cache_exams", list) or []
+        attempts = store.get("_cache_exam_attempts", list) or []
 
-        try:
-            attempts = FS.list_collection("exam_attempts") or []
-        except Exception:
-            attempts = []
+        # Load background nếu cache trống hoặc đã quá 60s
+        import time as _t
+        _last_fetch = getattr(self, "_exams_last_fetch", 0)
+        _is_loading = getattr(self, "_exams_loading", False)
+        if (not exams or _t.time() - _last_fetch > 60) and not _is_loading:
+            self._exams_loading = True
+            def _fetch():
+                try:
+                    _e = FS.list_collection("exams") or []
+                    _a = FS.list_collection("exam_attempts") or []
+                    store.set_value("_cache_exams", _e)
+                    store.set_value("_cache_exam_attempts", _a)
+                    self._exams_last_fetch = _t.time()
+                except Exception:
+                    pass
+                finally:
+                    self._exams_loading = False
+                # Chỉ refresh UI nếu user vẫn đang ở module exams
+                try:
+                    if self.current_module == "exams":
+                        self.body.content = self.module_exams()
+                        self.page.update()
+                except Exception:
+                    pass
+            threading.Thread(target=_fetch, daemon=True).start()
 
+        exams = sorted(exams, key=lambda x: x.get("createdAt", 0), reverse=True)
         unit_names = self._unit_name_map(store.get("units", store.seed_units))
 
         # Rebuild helper
@@ -12251,11 +12685,11 @@ class App:
                                     title=ft.Text("Xác nhận xoá"),
                                     content=ft.Text("Đồng chí có chắc chắn muốn xoá cuộc thi này vĩnh viễn không?"),
                                     actions=[
-                                        ft.TextButton("Huỷ", on_click=lambda _: _close_dialog(page)),
+                                        ft.TextButton("Huỷ", on_click=lambda _: _close_dialog(self.page)),
                                         ft.ElevatedButton("Xoá", on_click=confirm_del, bgcolor=ft.Colors.RED, color=ft.Colors.WHITE)
                                     ]
                                 )
-                                _show_dialog(page, _dlg)
+                                _show_dialog(self.page, _dlg)
                             return do_delete
 
                         del_btn = ft.IconButton(
@@ -12764,11 +13198,11 @@ class App:
             title=ft.Text("Tạo cuộc thi nhận thức mới", size=16, weight=ft.FontWeight.BOLD),
             content=ft.Container(content=dlg_content, width=380),
             actions=[
-                ft.TextButton("Hủy", on_click=lambda e: _close_dialog(page)),
+                ft.TextButton("Hủy", on_click=lambda e: _close_dialog(self.page)),
                 ft.ElevatedButton("Lưu cuộc thi", on_click=save_exam, bgcolor=GREEN_MID, color=ft.Colors.WHITE)
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def open_exam_session_dialog(self, exam: dict) -> None:
         import random
@@ -12799,7 +13233,7 @@ class App:
             exam_active[0] = False
             # Close active session dialog
             try:
-                _close_dialog(page)
+                _close_dialog(self.page)
             except:
                 pass
 
@@ -12904,10 +13338,10 @@ class App:
                 title=ft.Text("Kết quả thi nhận thức"),
                 content=ft.Container(content=res_content, padding=10),
                 actions=[
-                    ft.ElevatedButton("Xác nhận", on_click=lambda _: _close_dialog(page), bgcolor=GREEN_MID, color=ft.Colors.WHITE)
+                    ft.ElevatedButton("Xác nhận", on_click=lambda _: _close_dialog(self.page), bgcolor=GREEN_MID, color=ft.Colors.WHITE)
                 ]
             )
-            _show_dialog(page, _dlg)
+            _show_dialog(self.page, _dlg)
 
         # Timer loop function running on background thread
         def timer_loop():
@@ -12988,16 +13422,16 @@ class App:
             title=ft.Text("Bắt đầu bài thi", size=16, weight=ft.FontWeight.BOLD),
             content=ft.Container(content=info_col, width=350),
             actions=[
-                ft.TextButton("Hủy", on_click=lambda e: _close_dialog(page)),
+                ft.TextButton("Hủy", on_click=lambda e: _close_dialog(self.page)),
                 ft.ElevatedButton("Bắt đầu làm bài", on_click=start_exam_session, bgcolor=GREEN_MID, color=ft.Colors.WHITE)
             ],
         )
-        _show_dialog(page, _dlg)
+        _show_dialog(self.page, _dlg)
 
     def mount(self) -> None:
         self.frame = ft.Column(spacing=0, expand=True)
         self.page.add(self.frame)
-        self.page.on_resize = lambda e: self.refresh()
+        self.page.on_resized = lambda e: self.refresh()
         self.set_tab("home")
 
 
@@ -13228,14 +13662,17 @@ def show_login(page: ft.Page) -> None:
             set_busy(True)
 
             def login_worker():
-                try:
-                    creds = firebase_auth.login_with_username(u, p)
+                def _do_login_once() -> dict:
+                    """Thực hiện 1 lần login, ném exception nếu lỗi."""
+                    return firebase_auth.login_with_username(u, p)
+
+                def _after_login(creds: dict):
+                    """Xử lý sau khi đăng nhập thành công."""
                     _set_auth(creds, username=u)
                     try:
                         (store.DATA_DIR / "remember_user.txt").write_text(u)
                     except Exception:
                         pass
-                    # Lưu (hoặc xoá) password tuỳ checkbox
                     if remember_pw_cb.value:
                         _remember_login_save(u, p)
                     else:
@@ -13246,31 +13683,64 @@ def show_login(page: ft.Page) -> None:
                         store.refresh_soldiers_from_users()
                     except Exception:
                         pass
-                    # Load profile RIÊNG của user này từ users/{uid}
-                    try:
-                        my_profile = FS.get_doc(f"users/{creds['localId']}")
-                        if my_profile:
-                            store.STORE.set_local("userProfile", my_profile)
-                    except Exception:
-                        pass
-                    try:
-                        FS.set_doc(f"users/{creds['localId']}", {
-                            "username": u, "email": creds.get("email", ""),
-                            "lastLoginAt": store.now_ms(),
-                        })
-                    except Exception:
-                        pass
+                    # _hydrate_profile_after_login đảm bảo:
+                    #   • trường "id" luôn có trong userProfile
+                    #   • isAdmin/adminLevel lấy từ MongoDB + fallback soldiers cache
+                    #   • accountStatus đúng từ MongoDB (không ghi đè)
+                    #   • ghi lastLoginAt lên server
+                    _hydrate_profile_after_login(creds, u)
                     def go():
                         set_busy(False); show_app(page)
                     page.run_thread(go) if hasattr(page, "run_thread") else go()
+
+                # --- Thử lần 1 ---
+                try:
+                    creds = _do_login_once()
+                    _after_login(creds)
+                    return
                 except FirebaseAuthError as fe:
+                    # Server đang ngủ (Render free tier) → hiện countdown và retry
+                    if "SERVER_WAKING" in (fe.code or ""):
+                        WAIT_SECS = 40
+                        for remaining in range(WAIT_SECS, 0, -1):
+                            def _update_msg(r=remaining):
+                                err_text.value = (
+                                    f"⏳ Server đang khởi động, tự thử lại sau {r}s..."
+                                )
+                                try:
+                                    page.update()
+                                except Exception:
+                                    pass
+                            page.run_thread(_update_msg) if hasattr(page, "run_thread") else _update_msg()
+                            time.sleep(1)
+                        # --- Thử lần 2 sau khi chờ ---
+                        try:
+                            creds = _do_login_once()
+                            _after_login(creds)
+                            return
+                        except FirebaseAuthError as fe2:
+                            msg = friendly_error(fe2)
+                            def fail2(m=msg):
+                                set_busy(False)
+                                err_text.value = f"❌ {m}"
+                                page.update()
+                            page.run_thread(fail2) if hasattr(page, "run_thread") else fail2()
+                            return
+                        except Exception as ex2:
+                            def fail2(m=str(ex2)):
+                                set_busy(False)
+                                err_text.value = f"❌ {m}"
+                                page.update()
+                            page.run_thread(fail2) if hasattr(page, "run_thread") else fail2()
+                            return
+                    # Lỗi auth thông thường (sai mật khẩu, ...)
                     msg = friendly_error(fe)
-                    def fail():
-                        set_busy(False); err_text.value = f"❌ {msg}"; page.update()
+                    def fail(m=msg):
+                        set_busy(False); err_text.value = f"❌ {m}"; page.update()
                     page.run_thread(fail) if hasattr(page, "run_thread") else fail()
                 except Exception as ex:
-                    def fail():
-                        set_busy(False); err_text.value = f"❌ {ex}"; page.update()
+                    def fail(m=str(ex)):
+                        set_busy(False); err_text.value = f"❌ {m}"; page.update()
                     page.run_thread(fail) if hasattr(page, "run_thread") else fail()
             threading.Thread(target=login_worker, daemon=True).start()
             return
@@ -13340,6 +13810,7 @@ def show_login(page: ft.Page) -> None:
                 except Exception:
                     pass
 
+                profile["id"] = creds["localId"]  # đảm bảo id luôn có
                 store.STORE.set_local("userProfile", profile)
                 if remember_pw_cb.value:
                     _remember_login_save(current_username, p)
@@ -13357,7 +13828,11 @@ def show_login(page: ft.Page) -> None:
                     store.set_value("soldiers", soldiers)
                     if not is_admin_init:
                         uid = creds.get("localId") or ""
-                        store.push_notif("unit", "Tài khoản mới cần duyệt", f"Tài khoản {name} ({current_username}) vừa đăng ký và đang chờ duyệt.", link=f"profile:{uid}", target_uid="")
+                        _unit_str = f" • {unit_name}" if unit_name else ""
+                        _rank_str = f"{rank} " if rank else ""
+                        store.push_notif("unit", "👤 Tài khoản mới cần duyệt",
+                                         f"{_rank_str}{name} ({current_username}){_unit_str} vừa đăng ký, đang chờ duyệt.",
+                                         link=f"unit:accounts", target_uid="")
 
                 except Exception:
                     pass
@@ -13390,11 +13865,12 @@ def show_login(page: ft.Page) -> None:
         try:
             firebase_auth.send_password_reset_email(firebase_config.username_to_email(u))
             err_text.value = ""
-            page.snack_bar = ft.SnackBar(
+            _sb = ft.SnackBar(
                 ft.Text(f"✉️ Đã gửi link reset đến {firebase_config.username_to_email(u)}"),
                 bgcolor=GREEN_DARK,
             )
-            page.snack_bar.open = True
+            page.overlay.append(_sb)
+            _sb.open = True
             page.update()
         except Exception as ex:
             err_text.value = f"❌ {friendly_error(ex)}"
@@ -13486,11 +13962,16 @@ def show_pending(page: ft.Page) -> None:
         
     def do_refresh(e):
         try:
-            store.STORE.sync_from_firestore()
-            store.refresh_soldiers_from_users()
-            new_prof = FS.get_doc(f"users/{AUTH_STATE.get('localId')}")
-            if new_prof:
-                store.STORE.set_local("userProfile", new_prof)
+            uid = AUTH_STATE.get("localId") or ""
+            if uid:
+                fresh = FS.get_doc(f"users/{uid}")
+                if fresh:
+                    status = str(fresh.get("accountStatus") or "active")
+                    prof = store.get("userProfile", store.seed_user_profile)
+                    prof["accountStatus"] = status
+                    store.STORE.set_local("userProfile", prof)
+                    # Cập nhật soldiers
+                    store.set_account_status_override(uid, status, ttl_seconds=120.0)
         except Exception:
             pass
         show_app(page)
@@ -13606,6 +14087,14 @@ def show_app(page: ft.Page) -> None:
 
     prof = store.get("userProfile", store.seed_user_profile)
 
+    # Đăng ký FCM token (Flutter firebase_init.dart đã ghi vào client_storage)
+    try:
+        _uid_for_fcm = str(prof.get("id") or AUTH_STATE.get("localId") or "")
+        if _uid_for_fcm:
+            page.run_task(_register_fcm_token_async, page, _uid_for_fcm)
+    except Exception:
+        pass
+
     # ===== Tự đồng bộ adminLevel theo chức danh (nếu chưa khớp) =====
     # Vd: Trung đoàn trưởng/Chủ nhiệm/Đại đội trưởng phải có quyền tương ứng
     # để thấy nút "Phát động", "Tạo", duyệt... — không phụ thuộc lúc đăng ký.
@@ -13638,6 +14127,31 @@ def show_app(page: ft.Page) -> None:
     status = str(prof.get("accountStatus") or "active")
 
     if status == "pending":
+        # Fetch lại từ Firestore để tránh dùng cache cũ
+        try:
+            uid = str(
+                prof.get("id") or
+                prof.get("localId") or
+                AUTH_STATE.get("localId") or
+                AUTH_STATE.get("uid") or ""
+            )
+            if uid:
+                fresh = FS.get_doc(f"users/{uid}")
+                if fresh:
+                    fresh_status = str(fresh.get("accountStatus") or "active")
+                    if fresh_status != "pending":
+                        # Đã được duyệt — cập nhật local và tiếp tục
+                        prof.update({k: v for k, v in fresh.items() if not str(k).startswith("_")})
+                        prof["id"] = uid  # đảm bảo id luôn có
+                        prof["accountStatus"] = fresh_status
+                        store.STORE.set_local("userProfile", prof)
+                        # Cập nhật soldiers cache luôn
+                        store.set_account_status_override(uid, fresh_status, ttl_seconds=120.0)
+                        status = fresh_status
+        except Exception:
+            pass
+
+    if status == "pending":
         show_pending(page)
         return
     elif status == "locked":
@@ -13646,6 +14160,7 @@ def show_app(page: ft.Page) -> None:
 
     app = App(page)
     app.mount()
+    page._ll47_app = app  # lưu để background thread có thể refresh UI
 
 
 def _try_auto_login(page: ft.Page) -> bool:
@@ -13656,30 +14171,71 @@ def _try_auto_login(page: ft.Page) -> bool:
         new = firebase_auth.refresh_id_token(creds["refreshToken"])
         new["email"] = creds.get("email", "")
         _set_auth(new, username=creds.get("username"))
-        try:
-            store.STORE.purge_keys(["soldiers", "units", "userProfile", "chat_rooms"])
-            store.STORE.sync_from_firestore()
-            store.refresh_soldiers_from_users()
-        except Exception:
-            pass
-        try:
-            my_profile = FS.get_doc(f"users/{new['localId']}")
-            if my_profile:
-                store.STORE.set_local("userProfile", my_profile)
-        except Exception:
-            pass
 
-        # Đăng ký FCM Token nếu có
-        try:
-            import os as _os
-            from app import fcm as _fcm
-            fcm_token = _os.environ.get("FCM_TOKEN")
-            if fcm_token:
-                _fcm.register_token(FS, new['localId'], fcm_token)
-        except Exception:
-            pass
-
+        # Hiển thị app ngay với dữ liệu cache cục bộ — sync Firebase ở background
         show_app(page)
+
+        def _bg_startup_sync():
+            try:
+                store.STORE.purge_keys(["soldiers", "units", "userProfile", "chat_rooms"])
+                store.STORE.sync_from_firestore()
+                store.refresh_soldiers_from_users()
+            except Exception:
+                pass
+            profile_updated = False
+            try:
+                uid_bg = new["localId"]
+                my_profile = FS.get_doc(f"users/{uid_bg}")
+                if my_profile:
+                    # Luôn gán id để các hàm dùng prof.get("id") hoạt động đúng
+                    my_profile["id"] = uid_bg
+
+                    # Super admin fallback
+                    uname_check = str(my_profile.get("username") or creds.get("username") or "")
+                    if _is_super_admin_username(uname_check):
+                        my_profile["name"] = my_profile.get("name") or "Admin"
+                        my_profile["isAdmin"] = True
+                        my_profile["adminLevel"] = 5
+
+                    # Fallback từ soldiers cache nếu profile thiếu adminLevel/isAdmin
+                    if not my_profile.get("isAdmin") or not int(my_profile.get("adminLevel") or 0):
+                        soldiers_bg = store.get("soldiers", store.seed_soldiers)
+                        sol_bg = next((s for s in soldiers_bg if str(s.get("id")) == uid_bg), None)
+                        if sol_bg:
+                            if not my_profile.get("isAdmin") and sol_bg.get("isAdmin"):
+                                my_profile["isAdmin"] = True
+                            if not int(my_profile.get("adminLevel") or 0) and int(sol_bg.get("adminLevel") or 0):
+                                my_profile["adminLevel"] = int(sol_bg.get("adminLevel") or 0)
+
+                    # Nếu username bị mất (do profile_remote không có), lấy từ cache token
+                    if not my_profile.get("username"):
+                        my_profile["username"] = creds.get("username") or ""
+
+                    store.STORE.set_local("userProfile", my_profile)
+                    profile_updated = True
+            except Exception:
+                pass
+            # Refresh tab hiện tại (home hoặc profile) để hiện tên/quyền đúng
+            if profile_updated:
+                try:
+                    app_instance = getattr(page, "_ll47_app", None)
+                    if app_instance:
+                        cur_tab = getattr(app_instance, "tab", "")
+                        if cur_tab == "home":
+                            app_instance.body.content = app_instance.view_home()
+                            page.update()
+                        elif cur_tab == "profile":
+                            app_instance.body.content = app_instance.view_profile()
+                            page.update()
+                except Exception:
+                    pass
+            # Đăng ký FCM token (Flutter ghi vào client_storage khi khởi động)
+            try:
+                page.run_task(_register_fcm_token_async, page, new['localId'])
+            except Exception:
+                pass
+
+        threading.Thread(target=_bg_startup_sync, daemon=True).start()
         return True
     except Exception:
         _TOKEN_CACHE.clear()
@@ -13687,6 +14243,18 @@ def _try_auto_login(page: ft.Page) -> bool:
 
 
 async def main(page: ft.Page):
+    # Warm up backend server ngay khi app khởi động (tránh cold start khi đăng nhập)
+    firebase_auth.start_keepalive()
+
+    # Cố định tiếng Việt — tránh bị browser/OS đổi sang ngôn ngữ khác (vd: tiếng Pháp)
+    try:
+        page.locale_configuration = ft.LocaleConfiguration(
+            supported_locales=[ft.Locale("vi", "VN")],
+            current_locale=ft.Locale("vi", "VN"),
+        )
+    except Exception:
+        pass
+
     # Setup theme preference
     saved_theme = _load_theme_pref()
     update_theme_colors(saved_theme)

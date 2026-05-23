@@ -45,7 +45,7 @@ workflows:
     max_build_duration: 60
     environment:
       java: 17
-      flutter: 3.24.5
+      flutter: 3.27.4
       # groups:                 # BẬT LẠI khi có keystore ký release cho Play Store
       #   - ll47_android        # (tạo Environment group 'll47_android' trên Codemagic trước)
       vars:
@@ -63,10 +63,14 @@ workflows:
       - *set_api_base
       - name: Build APK
         script: |
-          flet build apk --project ll47_e141 --org vn.mil.e141 -v
+          flet build apk \
+            --include-packages firebase_core firebase_messaging shared_preferences \
+            --project ll47_e141 --org vn.mil.e141 -v
       - name: Build AAB (Google Play)
         script: |
-          flet build aab --project ll47_e141 --org vn.mil.e141 -v
+          flet build aab \
+            --include-packages firebase_core firebase_messaging shared_preferences \
+            --project ll47_e141 --org vn.mil.e141 -v
     artifacts:
       - build/apk/*.apk
       - build/aab/*.aab

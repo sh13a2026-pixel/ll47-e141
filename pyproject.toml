@@ -4,7 +4,7 @@ version = "2.6.0"
 description = "Quản lý Lực lượng 47 — Trung đoàn 141"
 authors = [{ name = "e141", email = "it@e141.mil.vn" }]
 requires-python = ">=3.9"
-dependencies = ["flet>=0.25.0"]
+dependencies = ["flet>=0.25.0", "Pillow>=10.2.0"]
 
 [tool.flet]
 # Tên app + bundle id
@@ -14,7 +14,7 @@ app.module = "main"
 
 # Bundle ID (đổi theo tổ chức của bạn)
 android.adaptive_icon_background = "#1a4731"
-android.package = "vn.mil.e141.ll47"
+android.package = "vn.mil.e141.ll47_e141"
 
 # iOS
 ios.bundle_id = "vn.mil.e141.ll47"
@@ -30,10 +30,16 @@ android.permissions = [
     "android.permission.READ_EXTERNAL_STORAGE",
     "android.permission.WRITE_EXTERNAL_STORAGE",
     "android.permission.CAMERA",
+    "android.permission.RECEIVE_BOOT_COMPLETED",
+    "android.permission.VIBRATE",
+    "android.permission.POST_NOTIFICATIONS",
 ]
 
 ios.info_plist."NSCameraUsageDescription" = "Cần camera để chụp minh chứng F47"
 ios.info_plist."NSPhotoLibraryUsageDescription" = "Cần truy cập ảnh để gắn minh chứng"
+
+# Flutter packages được truyền qua --flutter-packages khi build
+# firebase_core, firebase_messaging, shared_preferences
 
 # ============== SPLASH SCREEN ==============
 # Màu nền splash khi mở app (thay vì màn trắng) — khớp với GREEN_DARK trong app

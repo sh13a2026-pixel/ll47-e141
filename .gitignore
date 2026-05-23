@@ -13,6 +13,9 @@ _fix_dialog.py
 server/node_modules/
 server/.env
 
+# ===== Firebase Functions =====
+functions/node_modules/
+
 # ===== Secrets — KHONG commit =====
 .env
 **/auth_creds.json

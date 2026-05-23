@@ -56,17 +56,26 @@ def upload_bytes(remote_path: str, data: bytes, id_token: str,
 from . import image_utils
 
 
-def upload_file(local_path: str | Path, remote_path: str, id_token: str) -> dict:
-    p = Path(local_path)
-    data = p.read_bytes()
-    content_type = _guess_content_type(p.name)
-
-    # Nén nếu là ảnh — chỉ đổi content_type sang image/jpeg khi nén thành công.
+def _compress_if_image(data: bytes, filename: str) -> tuple[bytes, str]:
+    """Nén ảnh nếu cần, trả về (data, content_type) đã xử lý."""
+    content_type = _guess_content_type(filename)
     if content_type.startswith("image/"):
         data, did_convert = image_utils.compress_image_bytes(data)
         if did_convert:
             content_type = "image/jpeg"
+    return data, content_type
 
+
+def upload_file(local_path: str | Path, remote_path: str, id_token: str) -> dict:
+    p = Path(local_path)
+    data, content_type = _compress_if_image(p.read_bytes(), p.name)
+    return upload_bytes(remote_path, data, id_token, content_type=content_type)
+
+
+def upload_data(remote_path: str, raw_bytes: bytes, id_token: str, filename: str) -> dict:
+    """Upload từ bytes (dùng cho mobile/web khi không có f.path).
+    Tự động nén ảnh giống upload_file — dùng chung 1 nơi để đồng nhất."""
+    data, content_type = _compress_if_image(raw_bytes, filename)
     return upload_bytes(remote_path, data, id_token, content_type=content_type)
 
 

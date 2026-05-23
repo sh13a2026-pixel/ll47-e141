@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import time
+import threading
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -25,6 +26,33 @@ class FirebaseAuthError(Exception):
         super().__init__(f"{code}: {message}")
         self.code = code
         self.message = message
+
+
+# ============================================================================
+# Keep-alive: ping server mỗi 10 phút để Render free tier không sleep
+# ============================================================================
+
+def _ping_server():
+    """Ping /health endpoint để giữ server thức."""
+    try:
+        url = f"{fc.API_BASE_URL}/health"
+        req = urllib.request.Request(url, method="GET")
+        with urllib.request.urlopen(req, timeout=10):
+            pass
+    except Exception:
+        pass  # Bỏ qua lỗi ping — không ảnh hưởng app
+
+
+def start_keepalive():
+    """Chạy background thread ping server mỗi 10 phút."""
+    def _loop():
+        while True:
+            time.sleep(600)  # 10 phút
+            _ping_server()
+    t = threading.Thread(target=_loop, daemon=True)
+    t.start()
+    # Ping ngay lần đầu để warm up server khi app khởi động
+    threading.Thread(target=_ping_server, daemon=True).start()
 
 
 # ============================================================================
@@ -43,6 +71,12 @@ def _post(path: str, body: dict, id_token: str | None = None, timeout: float = 1
             txt = resp.read().decode("utf-8")
             return json.loads(txt) if txt else {}
     except urllib.error.HTTPError as e:
+        # 502/503/504 = server đang khởi động (Render free tier sleep)
+        if e.code in (502, 503, 504):
+            raise FirebaseAuthError(
+                "SERVER_WAKING",
+                f"Server đang khởi động lại (HTTP {e.code}). Vui lòng chờ..."
+            ) from e
         try:
             err = json.loads(e.read().decode("utf-8"))
             msg = err.get("error", {}).get("message", str(e))
@@ -163,6 +197,7 @@ ERROR_MESSAGES_VI: dict[str, str] = {
     "INVALID_ID_TOKEN": "Phiên đăng nhập không hợp lệ. Đăng nhập lại.",
     "INVALID_REFRESH_TOKEN": "Phiên đăng nhập đã hết hạn. Đăng nhập lại.",
     "NETWORK": "Mất kết nối. Kiểm tra mạng.",
+    "SERVER_WAKING": "Server đang khởi động, vui lòng chờ và thử lại...",
 }
 
 

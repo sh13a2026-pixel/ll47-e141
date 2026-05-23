@@ -263,6 +263,26 @@ class Store:
                 }
                 if key in v2_collections and isinstance(snapshot, list):
                     col_name = v2_collections[key]
+                    new_ids = {
+                        str(item.get("id") or item.get("_id") or "")
+                        for item in snapshot
+                    }
+                    new_ids.discard("")
+
+                    # Xoá các doc không còn trong snapshot (đã bị delete local)
+                    try:
+                        existing_docs = client.list_collection(f"{col_name}/e141")
+                        for ex in existing_docs:
+                            ex_id = str(ex.get("_id") or ex.get("id") or "")
+                            if ex_id and ex_id not in new_ids:
+                                try:
+                                    client.delete_doc(f"{col_name}/e141/{ex_id}")
+                                except Exception:
+                                    pass
+                    except Exception:
+                        pass
+
+                    # Upsert các item còn lại
                     for item in snapshot:
                         item_id = str(item.get("id") or item.get("_id") or "")
                         if item_id:
@@ -787,8 +807,45 @@ def seed_reports() -> list[dict]:
 
 
 def seed_f47() -> list[dict]:
-    """Không seed chiến dịch F47 demo."""
-    return []
+    """Seed dữ liệu mẫu cho chiến dịch F47."""
+    return [
+        {
+            "id": "f47_001",
+            "title": "Chiến dịch Xuân 2026",
+            "desc": "Chiến dịch tuyên truyền Tết Nguyên Đán",
+            "creator": "Nguyễn Văn A",
+            "creatorRole": "Chính uỷ",
+            "scope": "Toàn Trung đoàn",
+            "scopeUnits": ["Toàn Trung đoàn"],
+            "platforms": ["Facebook", "Zalo"],
+            "targetLink": "https://facebook.com/example",
+            "deadline": now_ms() + 7 * 24 * 3600_000,  # 7 ngày từ bây giờ
+            "status": "live",
+            "campaignType": "CMT",
+            "members": ["001", "002", "003"],
+            "submissions": {},
+            "createdAt": now_ms() - 24 * 3600_000,  # 1 ngày trước
+            "sampleMediaUrl": "",
+        },
+        {
+            "id": "f47_002",
+            "title": "Chiến dịch Hè 2026",
+            "desc": "Hoạt động tình nguyện mùa hè",
+            "creator": "Trần Văn B",
+            "creatorRole": "Chủ nhiệm Chính trị",
+            "scope": "Toàn Trung đoàn",
+            "scopeUnits": ["Toàn Trung đoàn"],
+            "platforms": ["TikTok", "YouTube"],
+            "targetLink": "https://youtube.com/example",
+            "deadline": now_ms() + 30 * 24 * 3600_000,  # 30 ngày từ bây giờ
+            "status": "live",
+            "campaignType": "Báo cáo",
+            "members": ["001", "002"],
+            "submissions": {},
+            "createdAt": now_ms() - 2 * 24 * 3600_000,  # 2 ngày trước
+            "sampleMediaUrl": "",
+        }
+    ]
 
 
 def seed_daily_shares() -> list[dict]:
@@ -828,11 +885,12 @@ def log_activity(text: str) -> None:
 
 
 def push_notif(ntype: str, title: str, desc: str, link: str | None = None,
-               target_uid: str | None = None) -> None:
+               target_uid: str | None = None, sender_name: str = "") -> None:
     """Đẩy 1 notif vào danh sách chung.
 
     Nếu `target_uid` được set, notif này CHỈ hiển thị cho user đó (FE filter).
     Nếu không set → broadcast cho tất cả user.
+    `sender_name`: tên người gửi/tạo (hiển thị trong card thông báo).
     """
     arr = STORE.get("notifs", seed_notifs)
     arr.insert(0, {
@@ -840,10 +898,22 @@ def push_notif(ntype: str, title: str, desc: str, link: str | None = None,
         "type": ntype, "title": title, "desc": desc,
         "at": now_ms(), "read": False, "link": link,
         "targetUid": target_uid or "",
+        "senderName": sender_name,
     })
     if len(arr) > 200:
         del arr[200:]
     STORE.set("notifs", arr)
+    # Tự động queue FCM push notification cho targeted notifs
+    if target_uid and STORE.is_bound():
+        try:
+            from . import fcm as _fcm
+            _fcm.queue_notification(
+                STORE._fs_client, target_uid,
+                title=title, body=desc, link=link,
+                data={"type": ntype, "link": link or "", "senderName": sender_name},
+            )
+        except Exception:
+            pass
 
 
 def filter_notifs_for_user(notifs: list, my_uid: str) -> list:
@@ -1135,11 +1205,29 @@ def refresh_soldiers_from_users() -> int:
         users = STORE._fs_client.list_collection("users")
     except Exception:
         return 0
+
+    # Giữ lại các thay đổi local chưa kịp sync lên Firestore
+    # (vd: vừa duyệt tài khoản nhưng Firestore chưa cập nhật kịp)
+    import time as _time
+    _local_overrides = getattr(STORE, "_account_status_overrides", {})
+    _override_expiry = getattr(STORE, "_account_status_expiry", {})
+    now_ts = _time.time()
+
     soldiers: list[dict] = []
     for u in users or []:
         uid = u.get("_id")
         if not uid:
             continue
+        # Nếu có override local còn hiệu lực (trong 30 giây), dùng nó thay vì Firestore
+        remote_status = u.get("accountStatus") or "active"
+        if uid in _local_overrides and now_ts < _override_expiry.get(uid, 0):
+            account_status = _local_overrides[uid]
+        else:
+            account_status = remote_status
+            # Xóa override đã hết hạn
+            _local_overrides.pop(uid, None)
+            _override_expiry.pop(uid, None)
+
         soldiers.append({
             "id": uid,
             "unitId": u.get("unitId") or "",
@@ -1150,7 +1238,7 @@ def refresh_soldiers_from_users() -> int:
             "username": u.get("username") or "",
             "phone": u.get("phone") or "",
             "email": u.get("email") or "",
-            "accountStatus": u.get("accountStatus") or "active",
+            "accountStatus": account_status,
             "isAdmin": bool(u.get("isAdmin")),
             "adminLevel": int(u.get("adminLevel") or 0),
             "password_plain": u.get("password_plain") or "",
@@ -1158,6 +1246,18 @@ def refresh_soldiers_from_users() -> int:
     # Set local + push lên app_data để các thiết bị khác cũng có
     STORE.set("soldiers", soldiers)
     return len(soldiers)
+
+
+def set_account_status_override(uid: str, status: str, ttl_seconds: float = 30.0) -> None:
+    """Đặt override tạm thời cho accountStatus của một user.
+    Dùng sau khi duyệt/khóa tài khoản để tránh bị sync Firestore ghi đè lại.
+    """
+    import time as _time
+    if not hasattr(STORE, "_account_status_overrides"):
+        STORE._account_status_overrides = {}
+        STORE._account_status_expiry = {}
+    STORE._account_status_overrides[uid] = status
+    STORE._account_status_expiry[uid] = _time.time() + ttl_seconds
 
 
 def delete_chat_room(room_id: str) -> bool:
