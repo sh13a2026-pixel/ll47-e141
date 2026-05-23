@@ -571,7 +571,7 @@ class App:
         self.overlay_from_tab: str | None = None
         self.toast_snackbar: ft.SnackBar | None = None
         # cache "current view" để rebuild khi data đổi
-        self.body = ft.Container(expand=True, bgcolor=BG2)
+        self.body = ft.Container(expand=True, bgcolor=BG2, clip_behavior=ft.ClipBehavior.HARD_EDGE)
         # Persistent nav/header boxes — chỉ update content, không rebuild frame
         self._header_box = ft.Container()
         self._nav_box = ft.Container()
@@ -1223,12 +1223,26 @@ class App:
                 ]
             else:
                 self.frame.controls = [
-                    ft.SafeArea(
-                        content=ft.Column(
-                            [self._header_box, self.body, self._nav_box],
-                            spacing=0,
-                            expand=True,
-                        ),
+                    ft.Column(
+                        [
+                            # SafeArea chỉ bảo vệ top (status bar / notch)
+                            ft.SafeArea(
+                                content=self._header_box,
+                                bottom=False, left=False, right=False,
+                            ),
+                            # Body chiếm hết khoảng giữa, clip tránh tràn
+                            ft.Container(
+                                content=self.body,
+                                expand=True,
+                                clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                            ),
+                            # Nav bar ở dưới, SafeArea bảo vệ bottom (home indicator)
+                            ft.SafeArea(
+                                content=self._nav_box,
+                                top=False, left=False, right=False,
+                            ),
+                        ],
+                        spacing=0,
                         expand=True,
                     )
                 ]
@@ -4997,15 +5011,23 @@ class App:
                 j = next((i for i, x in enumerate(soldiers2) if str(x.get("id")) == target_sid), None)
                 if j is not None:
                     soldiers2[j]["accountStatus"] = "active"
+                    # Override 600s để bảo vệ khỏi 30s sync ghi đè
+                    store.set_account_status_override(target_sid, "active", ttl_seconds=600.0)
                     store.set_value("soldiers", soldiers2)
-                    # Override 120s để tránh background sync ghi đè
-                    store.set_account_status_override(target_sid, "active", ttl_seconds=120.0)
-                    if _looks_like_firebase_uid(target_sid):
-                        try:
-                            FS.set_doc(f"users/{target_sid}", {"accountStatus": "active"})
-                        except Exception:
-                            pass
                     self.toast("✅ Đã duyệt tài khoản")
+                    # Push DB trong background với retry
+                    def _push_approve(sid=target_sid):
+                        import time as _ta
+                        for _att in range(3):
+                            try:
+                                if _looks_like_firebase_uid(sid):
+                                    FS.set_doc(f"users/{sid}", {"accountStatus": "active"})
+                                store.STORE.flush_pending()
+                                break
+                            except Exception:
+                                _ta.sleep(5)
+                    import threading as _th_a
+                    _th_a.Thread(target=_push_approve, daemon=True).start()
                     self.body.content = self.module_units()
                     self.refresh()
 
@@ -5742,21 +5764,35 @@ class App:
                 _dlg.open = False
             except Exception:
                 pass
-            camps = store.get("f47Campaigns", store.seed_f47)
-            camps = [c for c in camps if c.get("id") != cid]
-            store.set_value("f47Campaigns", camps)
-            store.log_activity(f"Xoá F47: {title[:40]}")
-            self.toast(f"🗑 Đã xoá: {title[:40]}")
-            self.body.content = self.module_f47()
-            self.refresh()
-            # Xoá ngay khỏi v2_f47Campaigns (không chờ _push để tránh sync ngược)
-            def _del_v2():
+            page.update()
+            # Xoá trong background: DB trước, local sau để tránh sync ghi ngược
+            def _delete_worker():
+                # 1. Xoá khỏi DB trước (synchronous trong thread)
+                for _attempt in range(3):
+                    try:
+                        FS.delete_doc(f"v2_f47Campaigns/e141/{cid}")
+                        break
+                    except Exception:
+                        import time as _t2
+                        _t2.sleep(3)
+                # 2. Cập nhật local cache NGAY (dùng set_local tránh trigger _push thừa)
+                camps2 = store.get("f47Campaigns", store.seed_f47)
+                camps2 = [c for c in camps2 if c.get("id") != cid]
+                store.STORE.set_local("f47Campaigns", camps2)
+                # 3. set_value để sync sang các thiết bị khác
+                store.set_value("f47Campaigns", camps2)
+                store.log_activity(f"Xoá F47: {title[:40]}")
+                def _go():
+                    self.toast(f"🗑 Đã xoá: {title[:40]}")
+                    self.body.content = self.module_f47()
+                    self.refresh()
                 try:
-                    FS.delete_doc(f"v2_f47Campaigns/e141/{cid}")
+                    page.run_thread(_go)
                 except Exception:
-                    pass
+                    _go()
             import threading as _t
-            _t.Thread(target=_del_v2, daemon=True).start()
+            _t.Thread(target=_delete_worker, daemon=True).start()
+            self.toast("⏳ Đang xoá...")
 
         _dlg = ft.AlertDialog(
             modal=True,
@@ -10738,8 +10774,8 @@ class App:
         j = next((i for i, x in enumerate(soldiers) if str(x.get("id")) == str(soldier_id)), None)
         if j is not None:
             soldiers[j]["accountStatus"] = "active"
-            # Override 120s để tránh background sync ghi đè
-            store.set_account_status_override(soldier_id, "active", ttl_seconds=120.0)
+            # Override 600s để bảo vệ khỏi 30s sync ghi đè (kể cả khi DB chậm)
+            store.set_account_status_override(soldier_id, "active", ttl_seconds=600.0)
             # Lưu local ngay lập tức
             store.set_value("soldiers", soldiers)
             self.toast("✅ Đã duyệt tài khoản")
@@ -10747,14 +10783,17 @@ class App:
             if self.current_module == "units":
                 self.body.content = self.module_units()
             self.refresh()
-            # Push Firestore trong background — không block UI
+            # Push Firestore trong background với retry
             def _push():
-                try:
-                    if _looks_like_firebase_uid(soldier_id):
-                        FS.set_doc(f"users/{soldier_id}", {"accountStatus": "active"})
-                    store.STORE.flush_pending()
-                except Exception:
-                    pass
+                for _attempt in range(3):
+                    try:
+                        if _looks_like_firebase_uid(soldier_id):
+                            FS.set_doc(f"users/{soldier_id}", {"accountStatus": "active"})
+                        store.STORE.flush_pending()
+                        break  # thành công, dừng retry
+                    except Exception:
+                        import time as _t
+                        _t.sleep(5)  # chờ 5s rồi thử lại
             import threading
             threading.Thread(target=_push, daemon=True).start()
 

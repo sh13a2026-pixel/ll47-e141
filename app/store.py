@@ -184,6 +184,10 @@ class Store:
                 key = doc.get("_id")
                 if not key or key in self.PRIVATE_KEYS:
                     continue
+                # Bỏ qua key đang có thay đổi local chưa được push lên DB
+                # (tránh sync ghi đè xoá/sửa chưa kịp propagate)
+                if key in self._pending_writes:
+                    continue
                 if "value" in doc:
                     val = doc["value"]
                     # Lọc room-all cũ (đã xoá) khỏi chat_rooms nếu còn sót trong DB
@@ -191,7 +195,7 @@ class Store:
                         val = [r for r in val if r.get("id") != "room-all"]
                     d[key] = val
                     count += 1
-            
+
             # V2 Collections Migration
             v2_collections = {
                 "soldiers": "v2_soldiers",
@@ -200,6 +204,9 @@ class Store:
                 "f47Campaigns": "v2_f47Campaigns"
             }
             for key, col_name in v2_collections.items():
+                # Bỏ qua nếu key đang có pending write local
+                if key in self._pending_writes:
+                    continue
                 try:
                     col_docs = self._fs_client.list_collection(f"{col_name}/e141")
                     if col_docs:
@@ -207,7 +214,7 @@ class Store:
                         count += len(col_docs)
                 except Exception:
                     pass
-            
+
             self.save()
         return count
 
