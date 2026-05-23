@@ -5096,29 +5096,105 @@ class App:
                 key=lambda x: (_username_key(str(x.get("username") or "")), str(x.get("name") or "")),
             )
 
+            # Bản đồ unitId → tên hiển thị
+            _units_tree = store.get("units", store.seed_units)
+            _unit_map = dict(store.flatten_units_for_select(_units_tree))
+
+            def _info_row(label: str, value: str) -> ft.Control:
+                return ft.Row(
+                    [
+                        ft.Text(label + ":", size=12, color=TEXT_MUTED, width=120),
+                        ft.Text(value, size=12, weight=ft.FontWeight.W_500, expand=True),
+                    ],
+                    vertical_alignment=ft.CrossAxisAlignment.START,
+                )
+
+            def show_detail_dialog(s: dict):
+                sid = str(s.get("id") or "")
+                uname = str(s.get("username") or "").strip() or "—"
+                disp_name = str(s.get("name") or "").strip() or "—"
+                rank = str(s.get("rank") or "").strip() or "—"
+                role = str(s.get("role") or "").strip() or "—"
+                unit_id = str(s.get("unitId") or "")
+                unit_name = _unit_map.get(unit_id, unit_id).strip() if unit_id else "—"
+                phone = str(s.get("phone") or "").strip() or "—"
+                hometown = str(s.get("hometown") or "").strip() or "—"
+
+                # Thử lấy dữ liệu mới nhất từ DB (nếu có mạng)
+                fresh: dict = {}
+                if _looks_like_firebase_uid(sid):
+                    try:
+                        fresh = FS.get_doc(f"users/{sid}") or {}
+                        if fresh:
+                            phone = str(fresh.get("phone") or phone).strip() or "—"
+                            hometown = str(fresh.get("hometown") or hometown).strip() or "—"
+                    except Exception:
+                        pass
+
+                dlg = ft.AlertDialog(modal=True)
+
+                def close_dlg():
+                    dlg.open = False
+                    try:
+                        self.page.update()
+                    except Exception:
+                        pass
+
+                def do_approve(e):
+                    close_dlg()
+                    self.approve_member_account(sid)
+
+                def do_reject(e):
+                    close_dlg()
+                    self.confirm_delete_soldier(sid)
+
+                can_act = self._is_admin() and sid and not _is_super_admin_username(uname)
+
+                dlg.title = ft.Row(
+                    [
+                        ft.Text("Thông tin đăng ký", size=15, weight=ft.FontWeight.BOLD, expand=True),
+                        perm_chip(s),
+                    ],
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+                dlg.content = ft.Column(
+                    [
+                        _info_row("Số định danh", uname),
+                        _info_row("Họ và tên", disp_name),
+                        _info_row("Cấp bậc", rank),
+                        _info_row("Chức danh", role),
+                        _info_row("Đơn vị", unit_name),
+                        _info_row("Số điện thoại", phone),
+                        _info_row("Quê quán", hometown),
+                    ],
+                    spacing=10, tight=True,
+                    width=300,
+                )
+                action_btns: list[ft.Control] = [
+                    ft.TextButton("Đóng", on_click=lambda e: close_dlg()),
+                ]
+                if can_act:
+                    action_btns += [
+                        ft.OutlinedButton(
+                            "❌ Từ chối", on_click=do_reject,
+                            style=ft.ButtonStyle(color=RED),
+                        ),
+                        ft.ElevatedButton(
+                            "✅ Duyệt", on_click=do_approve,
+                            bgcolor=GREEN_MID, color=ft.Colors.WHITE,
+                        ),
+                    ]
+                dlg.actions = action_btns
+                dlg.actions_alignment = ft.MainAxisAlignment.END
+                _show_dialog(self.page, dlg)
+
             acc_rows: list[ft.Control] = []
             for s in sorted_sol:
                 uname = str(s.get("username") or "").strip() or "—"
                 disp_name = str(s.get("name") or "").strip() or "—"
-                sid = str(s.get("id") or "")
-                btn: ft.Control | None = None
-                if self._is_admin() and sid and not _is_super_admin_username(uname):
-                    btn = ft.Row(
-                        [
-                            ft.ElevatedButton(
-                                "✅ Duyệt",
-                                on_click=lambda e, _sid=sid: self.approve_member_account(_sid),
-                                bgcolor=GREEN_MID, color=ft.Colors.WHITE,
-                                style=ft.ButtonStyle(padding=ft.padding.symmetric(horizontal=12, vertical=8)),
-                            ),
-                            ft.OutlinedButton(
-                                "❌ Từ chối",
-                                on_click=lambda e, _sid=sid: self.confirm_delete_soldier(_sid),
-                                style=ft.ButtonStyle(color=RED, padding=ft.padding.symmetric(horizontal=12, vertical=8)),
-                            ),
-                        ],
-                        spacing=6, tight=True,
-                    )
+                rank = str(s.get("rank") or "").strip() or "—"
+                unit_id = str(s.get("unitId") or "")
+                unit_name = _unit_map.get(unit_id, unit_id).strip() if unit_id else "—"
                 acc_rows.append(
                     ft.Container(
                         content=ft.Row(
@@ -5133,20 +5209,26 @@ class App:
                                             spacing=8,
                                             vertical_alignment=ft.CrossAxisAlignment.CENTER,
                                         ),
-                                        ft.Text(disp_name, size=11, color=TEXT_MUTED),
+                                        ft.Text(disp_name, size=12),
+                                        ft.Text(
+                                            f"{rank}  •  {unit_name}",
+                                            size=11, color=TEXT_MUTED,
+                                        ),
                                     ],
                                     spacing=2, expand=True, tight=True,
                                 ),
-                                btn if btn is not None else ft.Container(width=8),
+                                ft.Icon(ft.Icons.CHEVRON_RIGHT, size=18, color=TEXT_MUTED),
                             ],
                             vertical_alignment=ft.CrossAxisAlignment.CENTER,
                         ),
-                        padding=ft.padding.symmetric(horizontal=12, vertical=10),
+                        padding=ft.padding.symmetric(horizontal=12, vertical=12),
                         bgcolor=BG,
                         border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
+                        ink=True,
+                        on_click=lambda e, _s=s: show_detail_dialog(_s),
                     ),
                 )
-            
+
             if not acc_rows:
                 acc_rows.append(
                     ft.Container(
@@ -5168,6 +5250,13 @@ class App:
                                         ],
                                     ),
                                     padding=12, bgcolor=BG, border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
+                                ),
+                                ft.Container(
+                                    content=ft.Text(
+                                        "Bấm vào từng thành viên để xem thông tin đầy đủ trước khi duyệt.",
+                                        size=11, color=TEXT_MUTED, italic=True,
+                                    ),
+                                    padding=ft.padding.symmetric(horizontal=12, vertical=6),
                                 ),
                             ] + acc_rows,
                             spacing=0,
