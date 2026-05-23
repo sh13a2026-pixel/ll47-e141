@@ -1,17 +1,14 @@
-# Pin ve Flet 0.25.2 — code dung API cu (ft.alignment.center, ...).
-# Flet 0.27+ co breaking changes nen KHONG nang version tru khi refactor toan bo.
-flet==0.25.2
-flet-cli==0.25.2
+# Runtime dependencies — chỉ những gì app CẦN khi CHẠY trên thiết bị.
+# flet-cli là công cụ BUILD, KHÔNG đưa vào đây (sẽ bị bundle vào APK lãng phí).
 
-# Backend moi: Node.js + Socket.io + MongoDB. Client Python goi qua REST (urllib
-# stdlib, khong can them dep) + Socket.io cho realtime.
-# python-socketio[client] dung cho listen realtime; neu thieu, app TU fallback
-# sang polling REST nen van chay binh thuong.
+# Flet framework runtime (Flutter ↔ Python bridge)
+flet==0.25.2
+
+# Socket.io realtime — firestore_client.py dùng; nếu thiếu tự fallback polling REST
 python-socketio[client]>=5.11.0
 websocket-client>=1.7.0
 
-# Pillow bị loại khỏi Android build để giảm ~40MB và tăng tốc khởi động.
-# image_utils.py có fallback thuần Python (strip EXIF, vẫn nén JPEG) nên app
-# vẫn chạy bình thường — chỉ mất tính năng resize ảnh lớn trước khi upload.
-# Uncomment dòng dưới nếu build desktop cần Pillow:
+# Pillow bị loại khỏi Android để giảm ~40MB và tăng tốc khởi động.
+# image_utils.py có fallback thuần Python nên app vẫn hoạt động đầy đủ.
+# Uncomment nếu build desktop:
 # Pillow>=10.2.0
