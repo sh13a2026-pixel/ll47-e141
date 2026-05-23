@@ -145,6 +145,13 @@ def _hydrate_profile_after_login(creds: dict, login_username: str) -> None:
     except Exception:
         profile_remote = {}
 
+    # Fallback: nếu server trả về rỗng (mạng chậm / Render đang ngủ), dùng cache local
+    # để tránh mất tên/cấp bậc đã lưu từ lần đăng nhập/đăng ký trước.
+    cached_profile = store.get("userProfile", {})
+    for _field in ("name", "rank", "role", "unitId", "unitName", "phone", "photoUrl"):
+        if not profile_remote.get(_field) and cached_profile.get(_field):
+            profile_remote[_field] = cached_profile[_field]
+
     base = store.seed_user_profile()
     merged = {**base, **profile_remote}
     merged["id"] = uid  # đảm bảo luôn có id để show_app fetch đúng
@@ -204,24 +211,21 @@ def _hydrate_profile_after_login(creds: dict, login_username: str) -> None:
     store.set_value("soldiers", soldiers)
 
     try:
-        FS.set_doc(
-            f"users/{uid}",
-            {
-                "username": merged.get("username", ""),
-                "email": merged.get("email", ""),
-                "name": merged.get("name", ""),
-                "rank": merged.get("rank", ""),
-                "role": merged.get("role", ""),
-                "unitId": merged.get("unitId", ""),
-                "unitName": merged.get("unitName", ""),
-                "phone": merged.get("phone", ""),
-                "isAdmin": bool(merged.get("isAdmin")),
-                "adminLevel": int(merged.get("adminLevel") or 1),
-                "lastLoginAt": store.now_ms(),
-                "photoUrl": str(merged.get("photoUrl") or ""),
-                # KHÔNG ghi accountStatus ở đây — tránh ghi đè trạng thái duyệt
-            },
-        )
+        # Chỉ ghi các trường không rỗng để tránh xoá tên/rank đang có trên server
+        # khi GET trước đó thất bại (Render free tier đang ngủ).
+        _update: dict = {
+            "username": merged.get("username", ""),
+            "email": merged.get("email", ""),
+            "isAdmin": bool(merged.get("isAdmin")),
+            "adminLevel": int(merged.get("adminLevel") or 1),
+            "lastLoginAt": store.now_ms(),
+        }
+        for _f in ("name", "rank", "role", "unitId", "unitName", "phone", "photoUrl"):
+            _v = merged.get(_f) or ""
+            if _v:  # chỉ ghi khi có giá trị — tránh xoá dữ liệu cũ
+                _update[_f] = _v
+        FS.set_doc(f"users/{uid}", _update)
+        # KHÔNG ghi accountStatus ở đây — tránh ghi đè trạng thái duyệt
     except Exception:
         pass
 
@@ -1467,8 +1471,11 @@ class App:
 
         scope_ids = _descendants_of(scope_unit) if scope_unit and scope_unit != "root" \
                     else set(_parent_map.keys())
+        # Loại super admin (e141001) khỏi đếm quân số vì đó là tài khoản hệ thống.
+        # Admin cấp thấp hơn (cán bộ đơn vị) vẫn là quân nhân thật → được tính.
         scope_soldiers = [s for s in soldiers
-                          if not s.get("isAdmin") and (s.get("unitId") in scope_ids)]
+                          if not _is_super_admin_username(str(s.get("username") or ""))
+                          and (s.get("unitId") in scope_ids)]
         
         # Calculate active presence/absence
         total_count = len(scope_soldiers)
