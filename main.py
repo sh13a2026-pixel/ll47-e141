@@ -11913,8 +11913,13 @@ class App:
                                 [ft.Text(p.get("name") or "Không tên",
                                          color=ft.Colors.WHITE, size=18,
                                          weight=ft.FontWeight.BOLD),
-                                 ft.Text(f"{p.get('rank') or ''} • {p.get('role') or ''}",
-                                         color=ft.Colors.WHITE70, size=12),
+                                 ft.Text(
+                                     " • ".join(filter(None, [
+                                         (p.get("rank") or "").strip(),
+                                         (p.get("role") or "").strip(),
+                                     ])) or "—",
+                                     color=ft.Colors.WHITE70, size=12,
+                                 ),
                                  ft.Text(p.get("unitName") or "",
                                          color=ft.Colors.WHITE54, size=11)],
                                 expand=True, spacing=2, tight=True,
@@ -12025,9 +12030,12 @@ class App:
         """Mở dialog xem/sửa thông tin cá nhân."""
         page = self.page
         p = store.get("userProfile", store.seed_user_profile)
+        _is_sa = _is_super_admin_username(str(p.get("username") or "")) or (p.get("name") or "").lower() == "admin"
 
-        name_input = ft.TextField(label="Họ tên", value=p.get("name", ""), border_radius=8, dense=True)
-        rank_input = ft.TextField(label="Cấp bậc", value=p.get("rank", ""), border_radius=8, dense=True)
+        name_input = ft.TextField(label="Họ tên", value=p.get("name", ""), border_radius=8, dense=True,
+                                  read_only=_is_sa)
+        rank_input = ft.TextField(label="Cấp bậc", value=p.get("rank", ""), border_radius=8, dense=True,
+                                  visible=not _is_sa)
         role_input = ft.TextField(label="Chức vụ", value=p.get("role", ""), border_radius=8, dense=True)
         phone_input = ft.TextField(label="Số điện thoại", value=p.get("phone", ""), border_radius=8, dense=True)
         unit_input = ft.TextField(label="Đơn vị", value=p.get("unitName", ""), border_radius=8, dense=True)
@@ -12041,15 +12049,32 @@ class App:
                 page.update()
                 return
             new_p = dict(p)
-            new_p.update({
-                "name": name,
-                "rank": (rank_input.value or "").strip(),
+            updates: dict = {
                 "role": (role_input.value or "").strip(),
                 "phone": (phone_input.value or "").strip(),
                 "unitName": (unit_input.value or "").strip(),
                 "hometown": (hometown_input.value or "").strip(),
-            })
+            }
+            if _is_sa:
+                # Super admin: giữ name="admin" và rank="" — không cho đổi
+                updates["name"] = "admin"
+                updates["rank"] = ""
+            else:
+                updates["name"] = name
+                updates["rank"] = (rank_input.value or "").strip()
+            new_p.update(updates)
             store.set_value("userProfile", new_p)
+            # Đồng bộ lên DB trong background
+            uid = str(p.get("id") or AUTH_STATE.get("localId") or "")
+            if uid:
+                def _push():
+                    try:
+                        _sync = {k: v for k, v in updates.items() if v or k == "rank"}
+                        FS.set_doc(f"users/{uid}", _sync)
+                    except Exception:
+                        pass
+                import threading as _th
+                _th.Thread(target=_push, daemon=True).start()
             try:
                 _dlg.open = False
             except Exception:
