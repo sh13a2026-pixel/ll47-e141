@@ -166,6 +166,7 @@ def _hydrate_profile_after_login(creds: dict, login_username: str,
 
     if _is_super_admin_username(uname_raw):
         merged["name"] = "admin"
+        merged["rank"] = ""          # admin hệ thống không có quân hàm hiển thị
         merged["isAdmin"] = True
         merged["adminLevel"] = 5
         merged.setdefault("role", merged.get("role") or "Quản trị hệ thống")
@@ -1390,14 +1391,18 @@ class App:
                        and c.get("deadline", 0) > store.now_ms())
 
         uname = str(profile.get("username") or "")
-        if _is_super_admin_username(uname) or bool(profile.get("isAdmin")) or int(profile.get("adminLevel") or 0) >= 5:
+        _disp_name = (profile.get("name") or "").strip()
+        _is_sys_admin = (
+            _is_super_admin_username(uname)
+            or _disp_name.lower() == "admin"
+            or bool(profile.get("isAdmin"))
+            or int(profile.get("adminLevel") or 0) >= 5
+        )
+        if _is_sys_admin:
             greet_main = "đ.c Admin 🎖"
         else:
             rank = (profile.get("rank") or "").strip()
-            name = (profile.get("name") or "").strip()
-            # Nếu chưa có tên (đang load), hiện "..." thay vì số quân
-            if not name:
-                name = "..."
+            name = _disp_name or "..."
             rank_prefix = f"{rank} " if rank else ""
             greet_main = f"đ.c {rank_prefix}{name} 🫡"
 
@@ -14334,12 +14339,12 @@ def _try_auto_login(page: ft.Page) -> bool:
                     uname_check = str(my_profile.get("username") or creds.get("username") or "")
                     if _is_super_admin_username(uname_check):
                         my_profile["name"] = "admin"
+                        my_profile["rank"] = ""      # admin hệ thống không có quân hàm
                         my_profile["isAdmin"] = True
                         my_profile["adminLevel"] = 5
                         # Ghi lại lên DB (lần này server đã thức, bg sync chắc thành công)
-                        # tránh app đọc mãi "Quản trị viên" từ DB sau này
                         try:
-                            FS.set_doc(f"users/{uid_bg}", {"name": "admin"})
+                            FS.set_doc(f"users/{uid_bg}", {"name": "admin", "rank": ""})
                         except Exception:
                             pass
 
