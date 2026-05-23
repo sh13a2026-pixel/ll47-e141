@@ -13520,7 +13520,7 @@ def show_login(page: ft.Page) -> None:
     units_tree = store.get("units", store.seed_units)
     unit_options = store.flatten_units_for_select(units_tree)
 
-    user_input = ft.TextField(label="Số quân (vd: e141009)", value="",
+    user_input = ft.TextField(label="Số định danh quân nhân (vd: e141009)", value="",
                               border_radius=10, dense=True,
                               on_submit=lambda e: do_submit(e))
     pass_input = ft.TextField(label="Mật khẩu", password=True, can_reveal_password=True,
@@ -13570,6 +13570,11 @@ def show_login(page: ft.Page) -> None:
         value="Binh nhì",
         border_radius=10, dense=True, visible=False,
     )
+    phone_input = ft.TextField(label="Số điện thoại", border_radius=10, dense=True,
+                               visible=False, keyboard_type=ft.KeyboardType.PHONE,
+                               on_submit=lambda e: do_submit(e))
+    hometown_input = ft.TextField(label="Quê quán", border_radius=10, dense=True,
+                                  visible=False, on_submit=lambda e: do_submit(e))
     gen_username = ft.Text("", size=14, weight=ft.FontWeight.BOLD,
                            color=GREEN_DARK)
 
@@ -13583,7 +13588,7 @@ def show_login(page: ft.Page) -> None:
 
     gen_box = ft.Container(
         content=ft.Column([
-            ft.Text("Số quân được cấp:", size=11, color=TEXT_MUTED),
+            ft.Text("Số định danh được cấp:", size=11, color=TEXT_MUTED),
             ft.Row([
                 gen_username,
                 ft.IconButton(ft.Icons.REFRESH, tooltip="Tạo số khác",
@@ -13646,7 +13651,7 @@ def show_login(page: ft.Page) -> None:
             submit_btn.text = "📝 Đăng ký"
             toggle_link.text = "Đã có tài khoản? Đăng nhập"
             user_input.visible = False
-            for c in (name_input, rank_dd, title_dd, unit_dd, gen_box):
+            for c in (name_input, rank_dd, title_dd, unit_dd, phone_input, hometown_input, gen_box):
                 c.visible = True
             if not gen_username.value:
                 gen_username.value = random_username()
@@ -13655,7 +13660,7 @@ def show_login(page: ft.Page) -> None:
             submit_btn.text = "🔐 Đăng nhập"
             toggle_link.text = "Chưa có tài khoản? Đăng ký"
             user_input.visible = True
-            for c in (name_input, rank_dd, title_dd, unit_dd, gen_box):
+            for c in (name_input, rank_dd, title_dd, unit_dd, phone_input, hometown_input, gen_box):
                 c.visible = False
         err_text.value = ""
         page.update()
@@ -13776,6 +13781,8 @@ def show_login(page: ft.Page) -> None:
         title = title_dd.value or ""
         rank = rank_dd.value or ""
         username = (gen_username.value or "").strip()
+        phone = (phone_input.value or "").strip()
+        hometown = (hometown_input.value or "").strip()
         if not (name and unit_id and title and rank and username):
             err_text.value = "⚠️ Điền đủ Tên, Cấp bậc, Chức danh, Đơn vị"
             page.update(); return
@@ -13801,7 +13808,7 @@ def show_login(page: ft.Page) -> None:
                         raise
                 else:
                     raise FirebaseAuthError("EMAIL_EXISTS",
-                                            "Không tìm được số quân chưa dùng.")
+                                            "Không tìm được số định danh chưa dùng.")
 
                 _set_auth(creds, username=current_username)
                 gen_username.value = current_username
@@ -13822,6 +13829,7 @@ def show_login(page: ft.Page) -> None:
                     "name": name, "username": current_username,
                     "rank": rank, "role": title, "unitId": unit_id,
                     "email": creds.get("email", ""),
+                    "phone": phone, "hometown": hometown,
                     "isAdmin": is_admin_init,
                     "adminLevel": 5 if is_admin_init else 1,
                     "accountStatus": account_status,
@@ -13846,7 +13854,8 @@ def show_login(page: ft.Page) -> None:
                     soldiers.append({
                         "id": creds["localId"], "unitId": unit_id,
                         "name": name, "rank": rank, "role": title,
-                        "username": current_username, "phone": "",
+                        "username": current_username, "phone": phone,
+                        "hometown": hometown,
                         "accountStatus": account_status, "isAdmin": is_admin_init,
                         "adminLevel": 5 if is_admin_init else 1,
                     })
@@ -13885,7 +13894,7 @@ def show_login(page: ft.Page) -> None:
     def do_forgot():
         u = (user_input.value or "").strip()
         if not u:
-            err_text.value = "⚠️ Nhập số quân trước khi yêu cầu reset"
+            err_text.value = "⚠️ Nhập số định danh trước khi yêu cầu reset"
             page.update(); return
         try:
             firebase_auth.send_password_reset_email(firebase_config.username_to_email(u))
@@ -13931,7 +13940,8 @@ def show_login(page: ft.Page) -> None:
                 ft.Container(height=10),
                 err_text,
                 user_input,
-                name_input, rank_dd, unit_dd, title_dd, gen_box,
+                name_input, rank_dd, unit_dd, title_dd,
+                phone_input, hometown_input, gen_box,
                 pass_input,
                 ft.Row([remember_pw_cb], alignment=ft.MainAxisAlignment.START),
                 ft.Container(content=busy, alignment=ft.alignment.center, height=26),
