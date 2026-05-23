@@ -62,14 +62,25 @@ workflows:
       - *set_api_base
       - name: Build APK
         script: |
+          # Bước 1: flet generate Flutter project + package Python
+          # (sẽ fail ở Gradle do firebase_core 1.x cần buildConfig, nhưng project đã được gen)
           flet build apk \
             --include-packages firebase_core firebase_messaging shared_preferences \
-            --project ll47_e141 --org vn.mil.e141 -v
-      - name: Build AAB (Google Play)
+            --project ll47_e141 --org vn.mil.e141 || true
+
+          # Bước 2: Bật buildConfig cho firebase_core 1.x (AGP 8.x tắt mặc định)
+          echo "android.buildFeatures.buildConfig=true" >> build/flutter/android/gradle.properties
+
+          # Bước 3: Chạy lại flutter build apk trực tiếp
+          cd build/flutter
+          flutter build apk --release \
+            --build-number 26 --build-name 2.6.0
+
+      - name: Copy APK to output
         script: |
-          flet build aab \
-            --include-packages firebase_core firebase_messaging shared_preferences \
-            --project ll47_e141 --org vn.mil.e141 -v
+          mkdir -p build/apk
+          cp build/flutter/build/app/outputs/flutter-apk/app-release.apk \
+             build/apk/ll47-e141-v2.6.0.apk || true
     artifacts:
       - build/apk/*.apk
       - build/aab/*.aab
