@@ -44,7 +44,7 @@ workflows:
     max_build_duration: 60
     environment:
       java: 17
-      flutter: 3.27.4
+      flutter: 3.24.5
       # groups:                 # BẬT LẠI khi có keystore ký release cho Play Store
       #   - ll47_android        # (tạo Environment group 'll47_android' trên Codemagic trước)
       vars:
@@ -75,14 +75,21 @@ workflows:
           cat pubspec.yaml
           flutter pub get
 
-          # Bước 3: Export SERIOUS_PYTHON_SITE_PACKAGES (bắt buộc khi gọi flutter build trực tiếp)
+          # Bước 3: Patch main.dart — xóa các lời gọi ensureInitialized() không tồn tại
+          # (flet 0.25.2 generate sai — firebase_messaging và shared_preferences không có
+          # top-level ensureInitialized(); lỗi bị ẩn trước đây vì build fail sớm hơn ở Gradle)
+          python3 -c "import re;f='lib/main.dart';c=open(f).read();c=re.sub(r'[^\n]*firebase_messaging\.ensureInitialized\(\)[^\n]*\n','',c);c=re.sub(r'[^\n]*shared_preferences\.ensureInitialized\(\)[^\n]*\n','',c);open(f,'w').write(c);print('main.dart patched')"
+          echo "--- main.dart ensureInitialized references after patch ---"
+          grep -n "ensureInitialized" lib/main.dart || echo "(none)"
+
+          # Bước 5: Export SERIOUS_PYTHON_SITE_PACKAGES (bắt buộc khi gọi flutter build trực tiếp)
           # flet build apk đặt site-packages tại <project_root>/build/site-packages
           cd ../..
           export SERIOUS_PYTHON_SITE_PACKAGES="$(pwd)/build/site-packages"
           echo "SERIOUS_PYTHON_SITE_PACKAGES=$SERIOUS_PYTHON_SITE_PACKAGES"
           ls "$SERIOUS_PYTHON_SITE_PACKAGES" | head -5
 
-          # Bước 4: Chạy lại flutter build apk trực tiếp
+          # Bước 6: Chạy lại flutter build apk trực tiếp
           cd build/flutter
           flutter build apk --release \
             --build-number 26 --build-name 2.6.0
