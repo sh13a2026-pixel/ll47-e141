@@ -65,9 +65,7 @@ workflows:
           # App LL47 đã migrate sang Node.js backend — không dùng Firebase gì cả.
           # firebase_config.py chỉ chứa URL config (không import firebase).
           # → Không cần --include-packages, flet build thẳng một bước.
-          flet build apk \
-            --project ll47_e141 --org vn.mil.e141 \
-            --build-number 26 --build-version 2.6.0
+          flet build apk --project ll47_e141 --org vn.mil.e141
 
       - name: Copy APK to output
         script: |

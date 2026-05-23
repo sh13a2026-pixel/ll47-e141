@@ -10,4 +10,8 @@ flet-cli==0.25.2
 python-socketio[client]>=5.11.0
 websocket-client>=1.7.0
 
-Pillow>=10.2.0
+# Pillow bị loại khỏi Android build để giảm ~40MB và tăng tốc khởi động.
+# image_utils.py có fallback thuần Python (strip EXIF, vẫn nén JPEG) nên app
+# vẫn chạy bình thường — chỉ mất tính năng resize ảnh lớn trước khi upload.
+# Uncomment dòng dưới nếu build desktop cần Pillow:
+# Pillow>=10.2.0

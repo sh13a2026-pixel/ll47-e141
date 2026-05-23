@@ -7,6 +7,9 @@ requires-python = ">=3.9"
 dependencies = ["flet>=0.25.0", "Pillow>=10.2.0"]
 
 [tool.flet]
+# Hiện màn loading (spinner xanh) trong khi Python khởi động thay vì màn trắng
+hide_loading_animation = false
+
 # Tên app + bundle id
 app.name = "Quản lý LL47 e141"
 app.short_name = "LL47e141"
