@@ -41,7 +41,6 @@ workflows:
   # =========================================================================
   android-flet:
     name: LL47 Android (APK + AAB)
-    instance_type: linux_x2
     max_build_duration: 60
     environment:
       java: 17
@@ -141,7 +140,6 @@ workflows:
   # =========================================================================
   android-flutter-chat:
     name: LL47 Chat Android (Flutter)
-    instance_type: linux_x2
     max_build_duration: 60
     environment:
       java: 17
