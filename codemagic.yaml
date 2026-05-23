@@ -75,7 +75,15 @@ workflows:
           cat pubspec.yaml
           flutter pub get
 
-          # Bước 3: Chạy lại flutter build apk trực tiếp
+          # Bước 3: Export SERIOUS_PYTHON_SITE_PACKAGES (bắt buộc khi gọi flutter build trực tiếp)
+          # flet build apk đặt site-packages tại <project_root>/build/site-packages
+          cd ../..
+          export SERIOUS_PYTHON_SITE_PACKAGES="$(pwd)/build/site-packages"
+          echo "SERIOUS_PYTHON_SITE_PACKAGES=$SERIOUS_PYTHON_SITE_PACKAGES"
+          ls "$SERIOUS_PYTHON_SITE_PACKAGES" | head -5
+
+          # Bước 4: Chạy lại flutter build apk trực tiếp
+          cd build/flutter
           flutter build apk --release \
             --build-number 26 --build-name 2.6.0
 
