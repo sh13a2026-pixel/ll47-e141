@@ -5960,6 +5960,7 @@ class App:
                     "targetLink": target_link,
                     "creator": profile.get("name") or AUTH_STATE.get("username", ""),
                     "creatorRole": profile.get("role", ""),
+                    "createdByUid": AUTH_STATE.get("uid") or AUTH_STATE.get("localId") or "",
                     "deadline": now + hours * 3600_000,
                     "createdAt": now,
                     "platforms": platforms,
@@ -6278,7 +6279,7 @@ class App:
                     ]),
                     ft.Row([
                         ft.Text("👤 Người phát động:", size=11, color=TEXT_MUTED, width=110),
-                        ft.Text(f"đ.c {cur.get('creator','')} – {cur.get('creatorRole','')}",
+                        ft.Text("đ.c {} – {}".format(*_resolve_creator(cur)),
                                 size=11, expand=True),
                     ]),
                     ft.Row([
@@ -10196,6 +10197,15 @@ class App:
         soldier_by_id = {str(s.get("id")): s for s in soldiers if s.get("id")}
         current_view = getattr(self, "f47_view", "campaigns")
 
+        def _resolve_creator(c: dict) -> tuple[str, str]:
+            """Trả về (tên hiện tại, chức danh hiện tại) của người tạo chiến dịch.
+            Ưu tiên dữ liệu soldiers cache (tên đã cập nhật); fallback creator field cũ."""
+            uid = str(c.get("createdByUid") or "")
+            if uid and uid in soldier_by_id:
+                s = soldier_by_id[uid]
+                return str(s.get("name") or c.get("creator") or ""), str(s.get("role") or c.get("creatorRole") or "")
+            return str(c.get("creator") or ""), str(c.get("creatorRole") or "")
+
         # ── helpers ──────────────────────────────────────────────
         def cd_str(c: dict) -> str:
             left = int(c.get("deadline") or 0) - store.now_ms()
@@ -10285,7 +10295,7 @@ class App:
                     ], vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
 
                     ft.Text(
-                        f"Phát động bởi đ.c {c.get('creator','')} – {c.get('creatorRole','')}",
+                        "Phát động bởi đ.c {} – {}".format(*_resolve_creator(c)),
                         size=11, color=TEXT_MUTED,
                     ),
                     ft.Text(c.get("desc") or "", size=12, color=TEXT_MUTED),
@@ -14326,6 +14336,12 @@ def _try_auto_login(page: ft.Page) -> bool:
                         my_profile["name"] = "admin"
                         my_profile["isAdmin"] = True
                         my_profile["adminLevel"] = 5
+                        # Ghi lại lên DB (lần này server đã thức, bg sync chắc thành công)
+                        # tránh app đọc mãi "Quản trị viên" từ DB sau này
+                        try:
+                            FS.set_doc(f"users/{uid_bg}", {"name": "admin"})
+                        except Exception:
+                            pass
 
                     # Fallback từ soldiers cache nếu profile thiếu adminLevel/isAdmin
                     if not my_profile.get("isAdmin") or not int(my_profile.get("adminLevel") or 0):
