@@ -103,8 +103,9 @@ def _username_key(u: str) -> str:
 
 
 def _is_super_admin_username(u: str) -> bool:
-    """Tài khoản quản trị hệ thống — số quân e141001 (mọi cách gõ)."""
-    return _username_key(u) == "e141001"
+    """Tài khoản quản trị hệ thống — số quân e141001 hoặc 001 (mọi cách gõ)."""
+    k = _username_key(u)
+    return k in {"e141001", "001"}
 
 
 async def _register_fcm_token_async(page: ft.Page, uid: str) -> None:
@@ -130,8 +131,13 @@ def _looks_like_firebase_uid(uid: str | None) -> bool:
     return len(u) >= 18 and u.replace("_", "").isalnum()
 
 
-def _hydrate_profile_after_login(creds: dict, login_username: str) -> None:
-    """Ghép profile từ Firestore users/{uid}, áp quyền admin e141001, cập nhật soldiers."""
+def _hydrate_profile_after_login(creds: dict, login_username: str,
+                                  _pre_purge_cache: dict | None = None) -> None:
+    """Ghép profile từ Firestore users/{uid}, áp quyền admin 001, cập nhật soldiers.
+
+    _pre_purge_cache: profile đã backup trước khi purge_keys — dùng làm fallback
+    khi server trả về rỗng/lỗi (Render đang ngủ, mạng yếu).
+    """
     uid = creds.get("localId") or ""
     uname_raw = (login_username or "").strip() or (AUTH_STATE.get("username") or "")
 
@@ -146,8 +152,8 @@ def _hydrate_profile_after_login(creds: dict, login_username: str) -> None:
         profile_remote = {}
 
     # Fallback: nếu server trả về rỗng (mạng chậm / Render đang ngủ), dùng cache local
-    # để tránh mất tên/cấp bậc đã lưu từ lần đăng nhập/đăng ký trước.
-    cached_profile = store.get("userProfile", {})
+    # (backup trước purge hoặc lấy từ store hiện tại) để tránh mất tên/cấp bậc đã lưu.
+    cached_profile = _pre_purge_cache or store.get("userProfile", {}) or {}
     for _field in ("name", "rank", "role", "unitId", "unitName", "phone", "photoUrl"):
         if not profile_remote.get(_field) and cached_profile.get(_field):
             profile_remote[_field] = cached_profile[_field]
@@ -1389,9 +1395,9 @@ class App:
         else:
             rank = (profile.get("rank") or "").strip()
             name = (profile.get("name") or "").strip()
-            # Nếu chưa có tên (đang load), dùng username tạm
+            # Nếu chưa có tên (đang load), hiện "..." thay vì số quân
             if not name:
-                name = uname or "..."
+                name = "..."
             rank_prefix = f"{rank} " if rank else ""
             greet_main = f"đ.c {rank_prefix}{name} 🫡"
 
@@ -11796,7 +11802,7 @@ class App:
                         [
                             self._soldier_avatar(p.get("name") or "", str(p.get("photoUrl") or ""), 64),
                             ft.Column(
-                                [ft.Text(p.get("name") or p.get("username") or "Không tên",
+                                [ft.Text(p.get("name") or "Không tên",
                                          color=ft.Colors.WHITE, size=18,
                                          weight=ft.FontWeight.BOLD),
                                  ft.Text(f"{p.get('rank') or ''} • {p.get('role') or ''}",
@@ -11811,7 +11817,9 @@ class App:
                     ft.Container(height=14),
                     ft.Row([
                         self._mini_stat(
-                            f"{sum(1 for _s in soldiers if not _s.get('isAdmin'))}/{sum(1 for _s in soldiers if not _s.get('isAdmin'))}",
+                            (lambda _sl: f"{sum(1 for _s in _sl if (_s.get('accountStatus') or 'active') == 'active')}/{len(_sl)}")(
+                                [_s for _s in soldiers if not _is_super_admin_username(str(_s.get("username") or ""))]
+                            ),
                             "Quân số",
                         ),
                         self._mini_stat(str(my_reports), "Báo cáo"),
@@ -13684,6 +13692,12 @@ def show_login(page: ft.Page) -> None:
                         _remember_login_save(u, p)
                     else:
                         _remember_login_clear()
+                    # Backup profile TRƯỚC KHI purge để làm fallback nếu GET thất bại
+                    _profile_bak: dict = {}
+                    try:
+                        _profile_bak = dict(store.STORE._load().get("userProfile") or {})
+                    except Exception:
+                        pass
                     try:
                         store.STORE.purge_keys(["soldiers", "units", "userProfile", "chat_rooms"])
                         store.STORE.sync_from_firestore()
@@ -13695,7 +13709,7 @@ def show_login(page: ft.Page) -> None:
                     #   • isAdmin/adminLevel lấy từ MongoDB + fallback soldiers cache
                     #   • accountStatus đúng từ MongoDB (không ghi đè)
                     #   • ghi lastLoginAt lên server
-                    _hydrate_profile_after_login(creds, u)
+                    _hydrate_profile_after_login(creds, u, _profile_bak)
                     def go():
                         set_busy(False); show_app(page)
                     page.run_thread(go) if hasattr(page, "run_thread") else go()
@@ -14183,6 +14197,12 @@ def _try_auto_login(page: ft.Page) -> bool:
         show_app(page)
 
         def _bg_startup_sync():
+            # Backup profile TRƯỚC khi purge để làm fallback nếu GET thất bại
+            _profile_bak_bg: dict = {}
+            try:
+                _profile_bak_bg = dict(store.STORE._load().get("userProfile") or {})
+            except Exception:
+                pass
             try:
                 store.STORE.purge_keys(["soldiers", "units", "userProfile", "chat_rooms"])
                 store.STORE.sync_from_firestore()
@@ -14197,10 +14217,10 @@ def _try_auto_login(page: ft.Page) -> bool:
                     # Luôn gán id để các hàm dùng prof.get("id") hoạt động đúng
                     my_profile["id"] = uid_bg
 
-                    # Super admin fallback
+                    # Super admin: đặt tên "admin" + quyền tối đa
                     uname_check = str(my_profile.get("username") or creds.get("username") or "")
                     if _is_super_admin_username(uname_check):
-                        my_profile["name"] = my_profile.get("name") or "Admin"
+                        my_profile["name"] = "admin"
                         my_profile["isAdmin"] = True
                         my_profile["adminLevel"] = 5
 
@@ -14218,11 +14238,27 @@ def _try_auto_login(page: ft.Page) -> bool:
                     if not my_profile.get("username"):
                         my_profile["username"] = creds.get("username") or ""
 
+                    # Fallback các trường bị trống từ backup trước purge
+                    for _f in ("name", "rank", "role", "unitId", "unitName", "phone", "photoUrl"):
+                        if not my_profile.get(_f) and _profile_bak_bg.get(_f):
+                            my_profile[_f] = _profile_bak_bg[_f]
+
                     store.STORE.set_local("userProfile", my_profile)
                     profile_updated = True
+                else:
+                    # GET thất bại → khôi phục từ backup để tránh hiện tên rỗng
+                    if _profile_bak_bg:
+                        store.STORE.set_local("userProfile", _profile_bak_bg)
+                        profile_updated = True
             except Exception:
-                pass
-            # Refresh tab hiện tại (home hoặc profile) để hiện tên/quyền đúng
+                # Lỗi mạng → khôi phục backup
+                if _profile_bak_bg:
+                    try:
+                        store.STORE.set_local("userProfile", _profile_bak_bg)
+                        profile_updated = True
+                    except Exception:
+                        pass
+            # Refresh UI: luôn cập nhật sidebar (hiện tên đúng) + body nếu đang ở home/profile
             if profile_updated:
                 try:
                     app_instance = getattr(page, "_ll47_app", None)
@@ -14230,10 +14266,10 @@ def _try_auto_login(page: ft.Page) -> bool:
                         cur_tab = getattr(app_instance, "tab", "")
                         if cur_tab == "home":
                             app_instance.body.content = app_instance.view_home()
-                            page.update()
                         elif cur_tab == "profile":
                             app_instance.body.content = app_instance.view_profile()
-                            page.update()
+                        # Luôn rebuild sidebar để hiện đúng tên/avatar sau khi profile cập nhật
+                        app_instance.refresh()
                 except Exception:
                     pass
             # Đăng ký FCM token (Flutter ghi vào client_storage khi khởi động)
