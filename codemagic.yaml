@@ -67,7 +67,7 @@ workflows:
           # → Không cần --include-packages, flet build thẳng một bước.
           flet build apk \
             --project ll47_e141 --org vn.mil.e141 \
-            --build-number 26 --build-name 2.6.0
+            --build-number 26 --build-version 2.6.0
 
       - name: Copy APK to output
         script: |
