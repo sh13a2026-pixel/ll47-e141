@@ -150,8 +150,8 @@ class FirestoreClient:
             except Exception:
                 pass
 
-        # Có thể raise -> caller fallback polling
-        sio.connect(fc.API_BASE_URL, transports=["websocket", "polling"], wait_timeout=8)
+        # Có thể raise -> caller fallback polling; wait_timeout ngắn để không block lâu
+        sio.connect(fc.API_BASE_URL, transports=["websocket", "polling"], wait_timeout=2)
 
         def stop():
             try:

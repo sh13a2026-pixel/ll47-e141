@@ -983,14 +983,14 @@ class App:
 
     # ---- TAB SWITCHER ----
     def set_tab(self, tab: str) -> None:
-        # Dọn listener chat khi rời màn detail
+        # Dọn listener chat trong background (tránh sio.disconnect() block UI thread)
         prev_stop = getattr(self, "_chat_listener_stop", None)
+        self._chat_listener_stop = None
         if callable(prev_stop):
-            try:
-                prev_stop()
-            except Exception:
-                pass
-            self._chat_listener_stop = None
+            threading.Thread(
+                target=lambda fn=prev_stop: (lambda: (fn(),))(),
+                daemon=True,
+            ).start()
         self.overlay_soldier_id = None
         # Reset module mode khi bấm tab bottom nav
         self.current_module = None
@@ -2402,14 +2402,14 @@ class App:
                            or _os_ocr.environ.get("ANDROID_DATA") is not None)
         is_desktop = (self.page.width >= 800) and not _is_android_ocr
         if is_desktop:
-            # Dừng listener cũ trước khi rebuild
+            # Dừng listener cũ trong background (tránh block UI)
             prev_stop = getattr(self, "_chat_listener_stop", None)
+            self._chat_listener_stop = None
             if callable(prev_stop):
-                try:
-                    prev_stop()
-                except Exception:
-                    pass
-                self._chat_listener_stop = None
+                threading.Thread(
+                    target=lambda fn=prev_stop: (lambda: (fn(),))(),
+                    daemon=True,
+                ).start()
             self.chat_selected_room = room
             self.body.content = self.view_chat()
             self.refresh()
@@ -2540,14 +2540,14 @@ class App:
         _show_dialog(self.page, _dlg)
 
     def view_chat_detail(self, rid: str, name: str, sub: str, show_back: bool = True) -> ft.Control:
-        # Huỷ listener cũ nếu có
+        # Huỷ listener cũ trong background (tránh sio.disconnect() block UI thread)
         prev_stop = getattr(self, "_chat_listener_stop", None)
+        self._chat_listener_stop = None
         if callable(prev_stop):
-            try:
-                prev_stop()
-            except Exception:
-                pass
-            self._chat_listener_stop = None
+            threading.Thread(
+                target=lambda fn=prev_stop: (lambda: (fn(),))(),
+                daemon=True,
+            ).start()
 
         # ---- Bảo vệ: kiểm tra membership trước khi mở phòng ----
         my_uid = AUTH_STATE.get("uid") or AUTH_STATE.get("localId") or ""
@@ -3321,22 +3321,26 @@ class App:
 
             threading.Thread(target=_initial_load, daemon=True).start()
 
-            # Đăng ký lắng nghe realtime — bỏ refresh_chat_room_meta khỏi hot path
-            try:
-                def on_chat_messages(items: list[dict]):
-                    render_messages(items)
-                    if self.tab == "chat":
-                        try:
-                            self._apply_nav(self._detect_layout())
-                            self.page.update()
-                        except Exception:
-                            pass
+            # Đăng ký lắng nghe realtime trong background (tránh socketio connect block UI)
+            def _start_listener():
+                try:
+                    def on_chat_messages(items: list[dict]):
+                        render_messages(items)
+                        if self.tab == "chat":
+                            try:
+                                self._apply_nav(self._detect_layout())
+                                self.page.update()
+                            except Exception:
+                                pass
 
-                self._chat_listener_stop = store.listen_chat_messages(
-                    rid, on_chat_messages, interval=5.0,
-                )
-            except Exception:
-                self._chat_listener_stop = None
+                    stop_fn = store.listen_chat_messages(
+                        rid, on_chat_messages, interval=5.0,
+                    )
+                    self._chat_listener_stop = stop_fn
+                except Exception:
+                    self._chat_listener_stop = None
+
+            threading.Thread(target=_start_listener, daemon=True).start()
 
         def send_msg(e):
             txt = (msg_input.value or "").strip()

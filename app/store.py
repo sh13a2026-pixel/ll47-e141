@@ -185,7 +185,11 @@ class Store:
                 if not key or key in self.PRIVATE_KEYS:
                     continue
                 if "value" in doc:
-                    d[key] = doc["value"]
+                    val = doc["value"]
+                    # Lọc room-all cũ (đã xoá) khỏi chat_rooms nếu còn sót trong DB
+                    if key == "chat_rooms" and isinstance(val, list):
+                        val = [r for r in val if r.get("id") != "room-all"]
+                    d[key] = val
                     count += 1
             
             # V2 Collections Migration
@@ -854,14 +858,8 @@ def seed_daily_shares() -> list[dict]:
 
 
 def seed_chat_rooms() -> list[dict]:
-    """Để 1 phòng chat 'Toàn Trung đoàn' mặc định để mọi người có chỗ trao đổi."""
-    n = now_ms()
-    return [
-        {"id": "room-all", "name": "📣 Toàn Trung đoàn", "type": "group",
-         "members": [],
-         "lastMessage": "", "lastAt": n, "unread": 0,
-         "lastReadAt": {}, "unreadByUser": {}, "pinnedMessageIds": []},
-    ]
+    """Không seed phòng chat mặc định — người dùng tự tạo nhóm."""
+    return []
 
 
 # ============================================================================
