@@ -2975,7 +2975,7 @@ class App:
                 spacing=6, vertical_alignment=ft.CrossAxisAlignment.END,
             )
 
-        def bubble_me_inner(txt: str, footer: str, pinned: bool):
+        def bubble_me_inner(txt: str, footer: str | tuple, pinned: bool):
             border = ft.border.all(2, GOLD) if pinned else None
             bubble_wrap = ft.Container(
                 content=make_bubble_content(txt, ft.Colors.WHITE),
@@ -2997,13 +2997,46 @@ class App:
                 alignment=ft.MainAxisAlignment.END,
                 spacing=4, vertical_alignment=ft.CrossAxisAlignment.END,
             )
-            if not footer:
+            # footer có thể là tuple (status, label) hoặc string "Đang gửi..."
+            if isinstance(footer, tuple):
+                status, label = footer
+            else:
+                status, label = ("sending" if footer == "Đang gửi..." else "sent"), footer
+
+            if not label:
                 return row_bubble
+
+            # Icon status
+            if status == "seen":
+                # ✓✓ xanh lá
+                status_icon = ft.Row([
+                    ft.Icon(ft.Icons.DONE_ALL, size=13, color="#4ade80"),
+                    ft.Text(label, size=9, color=ft.Colors.WHITE54),
+                ], spacing=2, tight=True)
+            elif status == "delivered":
+                # ✓✓ xám
+                status_icon = ft.Row([
+                    ft.Icon(ft.Icons.DONE_ALL, size=13, color=ft.Colors.WHITE54),
+                    ft.Text(label, size=9, color=ft.Colors.WHITE54),
+                ], spacing=2, tight=True)
+            elif status == "sending":
+                # đồng hồ xoay
+                status_icon = ft.Row([
+                    ft.Icon(ft.Icons.SCHEDULE, size=12, color=ft.Colors.WHITE38),
+                    ft.Text(label, size=9, color=ft.Colors.WHITE38),
+                ], spacing=2, tight=True)
+            else:
+                # ✓ đơn — đã gửi lên server
+                status_icon = ft.Row([
+                    ft.Icon(ft.Icons.DONE, size=13, color=ft.Colors.WHITE54),
+                    ft.Text(label, size=9, color=ft.Colors.WHITE54),
+                ], spacing=2, tight=True)
+
             return ft.Column(
                 [
                     row_bubble,
                     ft.Container(
-                        content=ft.Text(footer, size=9, color=ft.Colors.WHITE54),
+                        content=status_icon,
                         padding=ft.padding.only(right=34, top=1),
                         alignment=ft.alignment.center_right,
                     ),
@@ -3144,19 +3177,21 @@ class App:
                 items=menu_items,
             )
 
-        def my_msg_footer(m: dict, members: list, last_read: dict) -> str:
+        def my_msg_footer(m: dict, members: list, last_read: dict) -> tuple[str, str]:
+            """Trả (status, label): status = 'sending'|'sent'|'delivered'|'seen'"""
             if str(m.get("senderId") or "") != str(my_uid):
-                return ""
+                return ("", "")
             others = [str(u) for u in members if u is not None and str(u) != str(my_uid)]
-            if not others:
-                return "Đã gửi"
             at = int(m.get("at") or 0)
             if at <= 0:
-                return "Đã gửi"
+                return ("sent", "Đã gửi")
+            if not others:
+                return ("sent", "Đã gửi")
             threshold = at - 500
             if all(int(last_read.get(str(u), 0)) >= threshold for u in others):
-                return "Đã xem"
-            return "Đã gửi"
+                return ("seen", "Đã xem")
+            # "delivered" = tin đã lên server (có at > 0) nhưng chưa xem
+            return ("delivered", "Đã nhận")
 
         def dismiss_bg_delete() -> ft.Container:
             return ft.Container(
@@ -3425,7 +3460,7 @@ class App:
                     msgs.controls[-1].key = None
                 except Exception:
                     pass
-            opt_inner = bubble_me_inner(txt, "Đang gửi...", False)
+            opt_inner = bubble_me_inner(txt, ("sending", "Đang gửi..."), False)
             opt_row = ft.Row(
                 [ft.Container(expand=True),
                  ft.Row([opt_inner], spacing=2,
@@ -3451,6 +3486,86 @@ class App:
                         pass
                 threading.Thread(target=worker, daemon=True).start()
 
+        # ── Online status cho DM ──────────────────────────────────────────
+        other_uid = ""
+        if rid.startswith("dm-"):
+            segs = rid[3:].split("-")
+            other_uid = next((x for x in segs if x and x != str(my_uid)), "")
+        online_label = _presence.last_seen_label(other_uid) if other_uid else ""
+        if is_group_room:
+            online_count = sum(1 for m in room_members if _presence.is_online(m))
+            online_label = f"{online_count} đang online" if online_count > 0 else f"{len(room_members)} thành viên"
+
+        # Ref để cập nhật online label realtime
+        _online_label_ref = ft.Text(
+            online_label, size=11,
+            color="#4ade80" if (other_uid and _presence.is_online(other_uid)) or (is_group_room and online_count > 0) else TEXT_MUTED,
+        )
+
+        def _refresh_online_label():
+            """Cập nhật label online trong header khi presence thay đổi."""
+            try:
+                if is_group_room:
+                    cnt = sum(1 for m in room_members if _presence.is_online(m))
+                    _online_label_ref.value = f"{cnt} đang online" if cnt > 0 else f"{len(room_members)} thành viên"
+                    _online_label_ref.color = "#4ade80" if cnt > 0 else TEXT_MUTED
+                else:
+                    lbl = _presence.last_seen_label(other_uid) if other_uid else ""
+                    _online_label_ref.value = lbl
+                    _online_label_ref.color = "#4ade80" if _presence.is_online(other_uid) else TEXT_MUTED
+                self.page.update()
+            except Exception:
+                pass
+
+        def _on_presence_chat(uid_p: str, online_p: bool) -> None:
+            if is_group_room or uid_p == other_uid:
+                _refresh_online_label()
+
+        _presence.on_change(_on_presence_chat)
+        # Lưu để off khi rời phòng
+        _prev_chat_presence_cb = getattr(self, "_chat_presence_cb", None)
+        if _prev_chat_presence_cb:
+            _presence.off_change(_prev_chat_presence_cb)
+        self._chat_presence_cb = _on_presence_chat
+
+        # ── Emoji toolbar ─────────────────────────────────────────────────
+        QUICK_EMOJIS = ["😀","😂","❤️","👍","🔥","😢","😮","🎉","👏","🙏"]
+        _emoji_bar_visible = ft.Ref[ft.Container]()
+
+        def _toggle_emoji_bar(e=None):
+            bar = _emoji_bar_visible.current
+            if bar:
+                bar.visible = not bar.visible
+                try:
+                    self.page.update()
+                except Exception:
+                    pass
+
+        def _insert_emoji(emoji: str):
+            msg_input.value = (msg_input.value or "") + emoji
+            try:
+                msg_input.focus()
+                self.page.update()
+            except Exception:
+                pass
+
+        emoji_bar = ft.Container(
+            ref=_emoji_bar_visible,
+            visible=False,
+            content=ft.Row(
+                [ft.TextButton(
+                    text=e,
+                    style=ft.ButtonStyle(padding=ft.padding.all(4)),
+                    on_click=lambda ev, em=e: _insert_emoji(em),
+                ) for e in QUICK_EMOJIS],
+                spacing=0,
+                scroll=ft.ScrollMode.AUTO,
+            ),
+            bgcolor=BG2,
+            padding=ft.padding.symmetric(horizontal=8, vertical=2),
+            border=ft.border.only(top=ft.BorderSide(1, BORDER)),
+        )
+
         send_btn = ft.IconButton(ft.Icons.SEND, icon_color=ft.Colors.WHITE,
                                  bgcolor=GREEN_MID, on_click=send_msg)
         msg_input.on_submit = send_msg
@@ -3465,9 +3580,13 @@ class App:
                                                on_click=lambda e: self.set_tab("chat"))]
                                 if show_back else []
                             ),
-                            ft.Column([ft.Text(name, size=15, weight=ft.FontWeight.BOLD),
-                                       ft.Text(sub, size=11, color=TEXT_MUTED)],
-                                      spacing=0, expand=True, tight=True),
+                            ft.Column(
+                                [
+                                    ft.Text(name, size=15, weight=ft.FontWeight.BOLD),
+                                    _online_label_ref,
+                                ],
+                                spacing=0, expand=True, tight=True,
+                            ),
                             *self._chat_header_call_btn(rid),
                             ft.IconButton(
                                 ft.Icons.INFO_OUTLINE,
@@ -3482,11 +3601,25 @@ class App:
                     border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
                 ),
                 msgs,
+                emoji_bar,
                 ft.Container(
                     content=ft.Row(
-                        [ft.IconButton(ft.Icons.ATTACH_FILE,
-                                       on_click=lambda e: chat_picker.pick_files(allow_multiple=True)),
-                         msg_input, send_btn],
+                        [
+                            ft.IconButton(
+                                ft.Icons.EMOJI_EMOTIONS_OUTLINED,
+                                tooltip="Emoji",
+                                icon_color=TEXT_MUTED,
+                                on_click=_toggle_emoji_bar,
+                            ),
+                            ft.IconButton(
+                                ft.Icons.ATTACH_FILE,
+                                tooltip="Đính kèm file",
+                                icon_color=TEXT_MUTED,
+                                on_click=lambda e: chat_picker.pick_files(allow_multiple=True),
+                            ),
+                            msg_input,
+                            send_btn,
+                        ],
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
                     bgcolor=BG, padding=ft.padding.symmetric(horizontal=8, vertical=6),

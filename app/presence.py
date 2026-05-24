@@ -1,32 +1,37 @@
 """
-LL47 e141 — Presence Manager (chấm xanh online).
+LL47 e141 — Presence Manager (chấm xanh online + lastSeen).
 
 Dùng Socket.io để:
   - Gửi user_online sau khi login
   - Nhận presence_list (danh sách uid đang online khi mới kết nối)
-  - Nhận presence_update (uid vừa online/offline)
+  - Nhận presence_update (uid vừa online/offline + lastSeen timestamp ms)
   - Gửi user_offline khi logout / app đóng
 
 API công khai:
-    start(uid)                  — gọi sau login
-    stop()                      — gọi khi logout
-    is_online(uid) -> bool      — kiểm tra uid có online không
-    get_online_uids() -> set    — tập uid đang online
-    on_change(callback)         — đăng ký callback(uid, online: bool) khi có thay đổi
-    off_change(callback)        — huỷ đăng ký
+    start(uid)                      — gọi sau login
+    stop()                          — gọi khi logout
+    is_online(uid) -> bool          — kiểm tra uid có online không
+    get_online_uids() -> set        — tập uid đang online
+    get_last_seen(uid) -> int|None  — timestamp ms lần cuối online (None nếu chưa biết)
+    last_seen_label(uid) -> str     — "Đang online" / "X phút trước" / "Hôm nay HH:MM" / ...
+    on_change(callback)             — đăng ký callback(uid, online: bool) khi có thay đổi
+    off_change(callback)            — huỷ đăng ký
 """
 from __future__ import annotations
 
 import threading
+import time
+from datetime import datetime
 from typing import Callable, Set
 
 from . import firebase_config as fc
 
 # ── Trạng thái toàn cục ──────────────────────────────────────────────────────
 _online_uids: Set[str] = set()
+_last_seen: dict[str, int] = {}   # uid -> timestamp ms
 _lock = threading.Lock()
 _callbacks: list[Callable[[str, bool], None]] = []
-_sio = None          # socketio.Client instance
+_sio = None
 _my_uid: str | None = None
 _running = False
 
@@ -49,6 +54,44 @@ def get_online_uids() -> set:
         return set(_online_uids)
 
 
+def get_last_seen(uid: str) -> int | None:
+    with _lock:
+        return _last_seen.get(uid)
+
+
+def last_seen_label(uid: str) -> str:
+    """Trả chuỗi hiển thị trạng thái online."""
+    with _lock:
+        online = uid in _online_uids
+        ts = _last_seen.get(uid)
+
+    if online:
+        return "Đang online"
+    if not ts:
+        return ""
+
+    now_ms = int(time.time() * 1000)
+    diff_ms = now_ms - ts
+    diff_s = diff_ms // 1000
+
+    if diff_s < 60:
+        return "Vừa xong"
+    if diff_s < 3600:
+        mins = diff_s // 60
+        return f"{mins} phút trước"
+    if diff_s < 86400:
+        hours = diff_s // 3600
+        return f"{hours} giờ trước"
+
+    dt = datetime.fromtimestamp(ts / 1000)
+    today = datetime.now()
+    if dt.date() == today.date():
+        return f"Hôm nay {dt.hour:02d}:{dt.minute:02d}"
+    if (today.date() - dt.date()).days == 1:
+        return f"Hôm qua {dt.hour:02d}:{dt.minute:02d}"
+    return f"{dt.day:02d}/{dt.month:02d}"
+
+
 def on_change(callback: Callable[[str, bool], None]) -> None:
     if callback not in _callbacks:
         _callbacks.append(callback)
@@ -65,7 +108,6 @@ def start(uid: str) -> None:
     """Kết nối Socket.io và đăng ký presence. Gọi sau khi login thành công."""
     global _sio, _my_uid, _running
     if _running:
-        # Đã chạy rồi — chỉ cập nhật uid nếu đổi user
         if _my_uid != uid:
             _my_uid = uid
             try:
@@ -87,7 +129,7 @@ def start(uid: str) -> None:
 
         sio = _sio_lib.Client(
             reconnection=True,
-            reconnection_attempts=0,   # thử mãi
+            reconnection_attempts=0,
             reconnection_delay=3,
             logger=False,
             engineio_logger=False,
@@ -103,12 +145,23 @@ def start(uid: str) -> None:
 
         @sio.on("presence_list")
         def on_presence_list(data):
-            uids = data.get("uids", []) if isinstance(data, dict) else []
+            if not isinstance(data, dict):
+                return
+            presences = data.get("presences") or []
+            uids = data.get("uids") or []
             with _lock:
                 _online_uids.clear()
-                _online_uids.update(str(u) for u in uids)
-            # Thông báo tất cả đang online
-            for u in uids:
+                if presences:
+                    for p in presences:
+                        u = str(p.get("uid", ""))
+                        if u:
+                            _online_uids.add(u)
+                            ls = p.get("lastSeen")
+                            if ls:
+                                _last_seen[u] = int(ls)
+                else:
+                    _online_uids.update(str(u) for u in uids)
+            for u in _online_uids:
                 _notify(str(u), True)
 
         @sio.on("presence_update")
@@ -117,6 +170,7 @@ def start(uid: str) -> None:
                 return
             uid_upd = str(data.get("uid", ""))
             online = bool(data.get("online", False))
+            ls = data.get("lastSeen")
             if not uid_upd:
                 return
             with _lock:
@@ -124,11 +178,13 @@ def start(uid: str) -> None:
                     _online_uids.add(uid_upd)
                 else:
                     _online_uids.discard(uid_upd)
+                if ls:
+                    _last_seen[uid_upd] = int(ls)
             _notify(uid_upd, online)
 
         @sio.event
         def disconnect():
-            pass  # reconnection tự động
+            pass
 
         try:
             sio.connect(
@@ -136,7 +192,7 @@ def start(uid: str) -> None:
                 transports=["websocket", "polling"],
                 wait_timeout=5,
             )
-            sio.wait()   # block thread cho đến khi stop() gọi disconnect
+            sio.wait()
         except Exception:
             pass
         finally:

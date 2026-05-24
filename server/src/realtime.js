@@ -18,23 +18,40 @@
  */
 let _io = null;
 
-// Map uid -> Set<socketId> — một user có thể mở nhiều tab/thiết bị
+// Map uid -> { socketId: Set, lastSeen: timestamp }
 const _onlineUids = new Map();
+// Map uid -> lastSeen timestamp (ms) — lưu kể cả khi offline
+const _lastSeen = new Map();
 
 function _addOnline(uid, socketId) {
   if (!_onlineUids.has(uid)) _onlineUids.set(uid, new Set());
   _onlineUids.get(uid).add(socketId);
+  _lastSeen.set(uid, Date.now());
 }
 
 function _removeOnline(uid, socketId) {
   const s = _onlineUids.get(uid);
   if (!s) return;
   s.delete(socketId);
+  _lastSeen.set(uid, Date.now()); // ghi lastSeen khi offline
   if (s.size === 0) _onlineUids.delete(uid);
 }
 
 function getOnlineUids() {
   return Array.from(_onlineUids.keys());
+}
+
+function getLastSeen(uid) {
+  return _lastSeen.get(uid) || null;
+}
+
+/** Trả object { uid, online, lastSeen } cho một uid */
+function getPresence(uid) {
+  return {
+    uid,
+    online: _onlineUids.has(uid),
+    lastSeen: _lastSeen.get(uid) || null,
+  };
 }
 
 function init(io) {
@@ -58,10 +75,11 @@ function init(io) {
       if (!uid) return;
       _socketUid = uid;
       _addOnline(uid, socket.id);
-      // Gửi danh sách online hiện tại cho client mới vào
-      socket.emit("presence_list", { uids: getOnlineUids() });
+      // Gửi danh sách online hiện tại cho client mới vào (kèm lastSeen)
+      const presenceList = getOnlineUids().map(u => ({ uid: u, online: true, lastSeen: _lastSeen.get(u) || null }));
+      socket.emit("presence_list", { uids: getOnlineUids(), presences: presenceList });
       // Broadcast cho tất cả: user này vừa online
-      io.emit("presence_update", { uid, online: true });
+      io.emit("presence_update", { uid, online: true, lastSeen: Date.now() });
     });
 
     // Client gửi khi logout (tuỳ chọn — disconnect cũng tự xử lý)
@@ -70,7 +88,7 @@ function init(io) {
       if (!uid) return;
       _removeOnline(uid, socket.id);
       if (!_onlineUids.has(uid)) {
-        io.emit("presence_update", { uid, online: false });
+        io.emit("presence_update", { uid, online: false, lastSeen: _lastSeen.get(uid) || Date.now() });
       }
       _socketUid = null;
     });
@@ -80,7 +98,7 @@ function init(io) {
       if (!_socketUid) return;
       _removeOnline(_socketUid, socket.id);
       if (!_onlineUids.has(_socketUid)) {
-        io.emit("presence_update", { uid: _socketUid, online: false });
+        io.emit("presence_update", { uid: _socketUid, online: false, lastSeen: _lastSeen.get(_socketUid) || Date.now() });
       }
     });
     // ── END PRESENCE ───────────────────────────────────────────────────────
@@ -162,4 +180,4 @@ function emitChange(collectionPath) {
   _io.to(`col:${collectionPath}`).emit("change", { collection: collectionPath });
 }
 
-module.exports = { init, emitChange, getOnlineUids };
+module.exports = { init, emitChange, getOnlineUids, getLastSeen, getPresence };
