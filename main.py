@@ -1,4 +1,4 @@
-﻿"""
+"""
 LL47 e141 — Ứng dụng Quản lý Lực lượng 47 Trung đoàn 141.
 Viết bằng Flet (Flutter for Python). Build được Android APK + iOS IPA + Web + Desktop.
 
@@ -6293,6 +6293,13 @@ class App:
             if name_part:
                 return f"đ.c {name_part}"
             return s.get("username") or uid
+
+        def _resolve_creator(c: dict) -> tuple[str, str]:
+            uid = str(c.get("createdByUid") or "")
+            if uid and uid in soldier_by_id:
+                s_obj = soldier_by_id[uid]
+                return str(s_obj.get("name") or c.get("creator") or ""), str(s_obj.get("role") or c.get("creatorRole") or "")
+            return str(c.get("creator") or ""), str(c.get("creatorRole") or "")
 
         # Header card
         deadline_left = deadline - now
