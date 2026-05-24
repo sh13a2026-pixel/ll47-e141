@@ -1211,7 +1211,8 @@ class App:
                             ft.Column(
                                 [
                                     self._header_box,
-                                    ft.Container(content=self.body, expand=True, bgcolor=BG2),
+                                    # self.body đã có expand=True + clip_behavior — dùng thẳng
+                                    self.body,
                                 ],
                                 spacing=0,
                                 expand=True,
@@ -1230,12 +1231,8 @@ class App:
                                 content=self._header_box,
                                 bottom=False, left=False, right=False,
                             ),
-                            # Body chiếm hết khoảng giữa, clip tránh tràn
-                            ft.Container(
-                                content=self.body,
-                                expand=True,
-                                clip_behavior=ft.ClipBehavior.HARD_EDGE,
-                            ),
+                            # self.body đã có expand=True + clip_behavior — dùng thẳng
+                            self.body,
                             # Nav bar ở dưới, SafeArea bảo vệ bottom (home indicator)
                             ft.SafeArea(
                                 content=self._nav_box,
