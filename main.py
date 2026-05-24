@@ -3535,15 +3535,17 @@ class App:
         if rid.startswith("dm-"):
             segs = rid[3:].split("-")
             other_uid = next((x for x in segs if x and x != str(my_uid)), "")
+        online_count = 0  # khởi tạo trước để tránh NameError
         online_label = _presence.last_seen_label(other_uid) if other_uid else ""
         if is_group_room:
             online_count = sum(1 for m in room_members if _presence.is_online(m))
             online_label = f"{online_count} đang online" if online_count > 0 else f"{len(room_members)} thành viên"
 
         # Ref để cập nhật online label realtime
+        _is_online_now = (other_uid and _presence.is_online(other_uid)) or (is_group_room and online_count > 0)
         _online_label_ref = ft.Text(
             online_label, size=11,
-            color="#4ade80" if (other_uid and _presence.is_online(other_uid)) or (is_group_room and online_count > 0) else TEXT_MUTED,
+            color="#4ade80" if _is_online_now else TEXT_MUTED,
         )
 
         def _refresh_online_label():
