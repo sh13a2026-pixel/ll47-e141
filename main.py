@@ -40,6 +40,7 @@ from app.firebase_auth import FirebaseAuthError, friendly_error
 from app.firestore_client import FirestoreClient
 from app import firebase_storage as fb_storage
 from app import fcm
+from app import presence as _presence
 
 # ============================================================
 # ===== TRẠNG THÁI AUTH TOÀN CỤC                          =====
@@ -72,6 +73,11 @@ def _set_auth(creds: dict, username: str | None = None) -> None:
     FS.set_token(creds["idToken"])
     store.STORE.bind_firestore(FS, creds["localId"])
     _TOKEN_CACHE.save({**creds, "username": AUTH_STATE["username"]})
+    # Bắt đầu theo dõi presence (chấm xanh online)
+    try:
+        _presence.start(creds["localId"])
+    except Exception:
+        pass
 
 
 def _clear_auth() -> None:
@@ -80,6 +86,11 @@ def _clear_auth() -> None:
     FS.set_token("")
     store.STORE.unbind_firestore()
     _TOKEN_CACHE.clear()
+    # Dừng presence khi logout
+    try:
+        _presence.stop()
+    except Exception:
+        pass
 
 
 def _maybe_refresh_token() -> None:
@@ -502,6 +513,62 @@ def time_ago(ts_ms: int) -> str:
 def initials(name: str, n: int = 2) -> str:
     parts = name.strip().split()
     return "".join(p[0] for p in parts[-n:]).upper() if parts else "?"
+
+
+def _avatar_with_dot(
+    name: str,
+    photo_url: str | None,
+    size: float,
+    uid: str | None = None,
+    *,
+    border_radius: float | None = None,
+    show_dot: bool = True,
+) -> ft.Control:
+    """Avatar tròn (hoặc bo góc nếu border_radius được truyền vào).
+    Nếu show_dot=True và uid đang online → hiện chấm xanh góc dưới phải.
+    """
+    r = border_radius if border_radius is not None else size / 2
+    url = (photo_url or "").strip()
+    if url:
+        circle = ft.Container(
+            content=ft.Image(src=url, width=size, height=size, fit=ft.ImageFit.COVER),
+            width=size, height=size,
+            border_radius=r,
+            clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+            border=ft.border.all(2, ft.Colors.WHITE24),
+        )
+    else:
+        circle = ft.Container(
+            content=ft.Text(initials(name or "?", 2), color="#085041",
+                            size=max(10, size / 3), weight=ft.FontWeight.BOLD),
+            bgcolor="#9fe1cb",
+            width=size, height=size,
+            border_radius=r,
+            alignment=ft.alignment.center,
+            border=ft.border.all(2, ft.Colors.WHITE24),
+        )
+
+    # Chấm xanh online
+    online = show_dot and bool(uid) and _presence.is_online(str(uid))
+    if not online:
+        return circle
+
+    dot_size = max(8.0, size * 0.22)
+    return ft.Stack(
+        [
+            circle,
+            ft.Container(
+                content=ft.Container(
+                    width=dot_size, height=dot_size,
+                    bgcolor="#22c55e",
+                    border_radius=dot_size / 2,
+                    border=ft.border.all(2, BG),
+                ),
+                right=0, bottom=0,
+            ),
+        ],
+        width=size, height=size,
+    )
 
 
 def greeting() -> str:
@@ -2120,28 +2187,17 @@ class App:
                 border_radius=12 if is_group else 22,
                 alignment=ft.alignment.center,
             )
-            avatar_stack = (
-                ft.Stack(
-                    [
-                        avatar_circle,
-                        ft.Container(
-                            content=ft.Container(
-                                width=10,
-                                height=10,
-                                bgcolor="#22c55e",
-                                border_radius=5,
-                                border=ft.border.all(2, BG),
-                            ),
-                            right=1,
-                            bottom=1,
-                        ),
-                    ],
-                    width=44,
-                    height=44,
+            # Chấm xanh online: dùng _avatar_with_dot cho DM, giữ avatar_circle cho group
+            if is_group:
+                avatar_stack = avatar_circle
+            else:
+                # Lấy uid của người kia trong DM
+                dm_uid = str(r.get("otherUid") or r.get("uid") or "")
+                avatar_stack = _avatar_with_dot(
+                    name, str(r.get("photoUrl") or ""), 44,
+                    uid=dm_uid if dm_uid else None,
+                    border_radius=22,
                 )
-                if (online_dm and not is_group)
-                else avatar_circle
-            )
             is_selected = is_desktop and (rid == _sel_rid)
             return ft.Container(
                 content=ft.Row(
@@ -5442,7 +5498,7 @@ class App:
             return ft.Container(
                 content=ft.Row(
                     [
-                        self._soldier_avatar(name, photo, 40),
+                        self._soldier_avatar(name, photo, 40, uid=sid),
                         ft.Column(
                             [
                                 ft.Row(
@@ -10763,27 +10819,9 @@ class App:
     # ===== VIEW: DANH BẠ                                     =====
     # ============================================================
 
-    def _soldier_avatar(self, name: str, photo_url: str | None, size: float) -> ft.Control:
-        url = (photo_url or "").strip()
-        if url:
-            return ft.Container(
-                content=ft.Image(src=url, width=size, height=size, fit=ft.ImageFit.COVER),
-                width=size,
-                height=size,
-                border_radius=size / 2,
-                clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
-                border=ft.border.all(2, ft.Colors.WHITE24),
-            )
-        return ft.Container(
-            content=ft.Text(initials(name or "?", 2), color="#085041", size=max(12, size / 3),
-                          weight=ft.FontWeight.BOLD),
-            bgcolor="#9fe1cb",
-            width=size,
-            height=size,
-            border_radius=size / 2,
-            alignment=ft.alignment.center,
-            border=ft.border.all(2, ft.Colors.WHITE24),
-        )
+    def _soldier_avatar(self, name: str, photo_url: str | None, size: float,
+                        uid: str | None = None) -> ft.Control:
+        return _avatar_with_dot(name, photo_url, size, uid=uid)
 
     def open_member_profile(self, s: dict) -> None:
         sid = str(s.get("id") or "")
@@ -10915,7 +10953,8 @@ class App:
                 [
                     ft.Row(
                         [
-                            self._soldier_avatar(s.get("name") or "", photo, 72),
+                            self._soldier_avatar(s.get("name") or "", photo, 72,
+                                                uid=str(soldier_id)),
                             ft.Column(
                                 [
                                     ft.Text(display, color=ft.Colors.WHITE, size=18,
@@ -11719,7 +11758,8 @@ class App:
         info_area = ft.Container(
             content=ft.Row(
                 [
-                    self._soldier_avatar(s.get("name") or "", pic, 44),
+                    self._soldier_avatar(s.get("name") or "", pic, 44,
+                                        uid=str(s.get("id") or "")),
                     ft.Column(
                         [name_txt, sub_txt],
                         expand=True, spacing=2, tight=True,
@@ -12479,6 +12519,14 @@ class App:
         def do_logout(e):
             _dlg.open = False
             self.stop_realtime_sync()
+            # Huỷ presence callback trước khi clear auth
+            try:
+                cb = getattr(page, "_ll47_presence_cb", None)
+                if cb:
+                    _presence.off_change(cb)
+                    page._ll47_presence_cb = None
+            except Exception:
+                pass
             _clear_auth()
             show_login(self.page)
 
@@ -14401,6 +14449,24 @@ def show_app(page: ft.Page) -> None:
     app = App(page)
     app.mount()
     page._ll47_app = app  # lưu để background thread có thể refresh UI
+
+    # Đăng ký callback presence: khi có user online/offline → refresh tab chat + danh bạ
+    def _on_presence_change(uid: str, online: bool) -> None:
+        try:
+            _app = getattr(page, "_ll47_app", None)
+            if _app is None:
+                return
+            cur_tab = getattr(_app, "tab", "")
+            if cur_tab in ("chat", "contacts"):
+                _app.body.content = (
+                    _app.view_chat() if cur_tab == "chat" else _app.view_contacts()
+                )
+                _app.refresh()
+        except Exception:
+            pass
+
+    _presence.on_change(_on_presence_change)
+    page._ll47_presence_cb = _on_presence_change  # giữ ref để off_change khi logout
 
 
 def _try_auto_login(page: ft.Page) -> bool:

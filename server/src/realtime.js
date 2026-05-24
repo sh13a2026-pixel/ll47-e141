@@ -7,14 +7,41 @@
  * Khi có thay đổi trong collection đó, server phát:
  *              socket.on("change", ({ collection }) => { ...fetch lại... })
  *
+ * Presence (online status):
+ *   Client gọi:  socket.emit("user_online",  { uid })  — sau khi login
+ *   Client gọi:  socket.emit("user_offline", { uid })  — khi disconnect / logout
+ *   Server phát: socket.on("presence_update", { uid, online: true/false })
+ *   Server phát: socket.on("presence_list",   { uids: [...] })  — khi mới kết nối
+ *
  * Giữ payload nhẹ (chỉ tên collection) — client tự gọi REST để lấy dữ liệu mới,
  * khớp đúng mô hình callback(list) cũ.
  */
 let _io = null;
 
+// Map uid -> Set<socketId> — một user có thể mở nhiều tab/thiết bị
+const _onlineUids = new Map();
+
+function _addOnline(uid, socketId) {
+  if (!_onlineUids.has(uid)) _onlineUids.set(uid, new Set());
+  _onlineUids.get(uid).add(socketId);
+}
+
+function _removeOnline(uid, socketId) {
+  const s = _onlineUids.get(uid);
+  if (!s) return;
+  s.delete(socketId);
+  if (s.size === 0) _onlineUids.delete(uid);
+}
+
+function getOnlineUids() {
+  return Array.from(_onlineUids.keys());
+}
+
 function init(io) {
   _io = io;
   io.on("connection", (socket) => {
+    let _socketUid = null; // uid đã đăng ký cho socket này
+
     socket.on("subscribe", (msg) => {
       const col = msg && msg.collection;
       if (typeof col === "string" && col) socket.join(`col:${col}`);
@@ -23,6 +50,40 @@ function init(io) {
       const col = msg && msg.collection;
       if (typeof col === "string" && col) socket.leave(`col:${col}`);
     });
+
+    // ── PRESENCE ──────────────────────────────────────────────────────────
+    // Client gửi ngay sau khi kết nối + login thành công
+    socket.on("user_online", (msg) => {
+      const uid = msg && msg.uid;
+      if (!uid) return;
+      _socketUid = uid;
+      _addOnline(uid, socket.id);
+      // Gửi danh sách online hiện tại cho client mới vào
+      socket.emit("presence_list", { uids: getOnlineUids() });
+      // Broadcast cho tất cả: user này vừa online
+      io.emit("presence_update", { uid, online: true });
+    });
+
+    // Client gửi khi logout (tuỳ chọn — disconnect cũng tự xử lý)
+    socket.on("user_offline", (msg) => {
+      const uid = (msg && msg.uid) || _socketUid;
+      if (!uid) return;
+      _removeOnline(uid, socket.id);
+      if (!_onlineUids.has(uid)) {
+        io.emit("presence_update", { uid, online: false });
+      }
+      _socketUid = null;
+    });
+
+    // Tự động xử lý khi mất kết nối
+    socket.on("disconnect", () => {
+      if (!_socketUid) return;
+      _removeOnline(_socketUid, socket.id);
+      if (!_onlineUids.has(_socketUid)) {
+        io.emit("presence_update", { uid: _socketUid, online: false });
+      }
+    });
+    // ── END PRESENCE ───────────────────────────────────────────────────────
 
     // === CHAT REALTIME FEATURES ===
     
@@ -101,4 +162,4 @@ function emitChange(collectionPath) {
   _io.to(`col:${collectionPath}`).emit("change", { collection: collectionPath });
 }
 
-module.exports = { init, emitChange };
+module.exports = { init, emitChange, getOnlineUids };
