@@ -4,11 +4,15 @@ version = "2.6.0"
 description = "Quản lý Lực lượng 47 — Trung đoàn 141"
 authors = [{ name = "e141", email = "it@e141.mil.vn" }]
 requires-python = ">=3.9"
-dependencies = ["flet>=0.25.0", "Pillow>=10.2.0"]
+dependencies = [
+    "flet>=0.25.0",
+    "python-socketio[client]>=5.11.0",
+    "websocket-client>=1.7.0"
+]
 
 [tool.flet]
-# Ẩn spinner mặc định của Flet — dùng splash screen tự tạo thay thế
-hide_loading_animation = true
+# Hiện spinner mặc định của Flet để tránh màn hình trắng khi tải môi trường Python
+hide_loading_animation = false
 
 # Tên app + bundle id
 app.name = "Quản lý LL47 e141"
