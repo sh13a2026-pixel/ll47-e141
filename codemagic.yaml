@@ -48,7 +48,7 @@ workflows:
       # groups:                 # BẬT LẠI khi có keystore ký release cho Play Store
       #   - ll47_android        # (tạo Environment group 'll47_android' trên Codemagic trước)
       vars:
-        LL47_API_BASE: "https://ll47-backend.onrender.com"   # << ĐỔI URL backend
+        LL47_API_BASE: "http://103.82.26.251"   # << ĐỔI URL backend
     triggering:
       events:
         - push
@@ -103,7 +103,7 @@ workflows:
         distribution_type: app_store         # hoặc: ad_hoc / development
         bundle_identifier: vn.mil.e141.ll47
       vars:
-        LL47_API_BASE: "https://ll47-backend.onrender.com"   # << ĐỔI URL backend
+        LL47_API_BASE: "http://103.82.26.251"   # << ĐỔI URL backend
         BUNDLE_ID: "vn.mil.e141.ll47"
     triggering:
       events:

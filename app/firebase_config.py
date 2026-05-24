@@ -17,7 +17,7 @@ import os
 # ---------------------------------------------------------------------------
 # URL backend — ĐỔI dòng này thành URL production khi phát hành.
 # ---------------------------------------------------------------------------
-_DEFAULT_API_BASE = "https://ll47-backend.onrender.com"
+_DEFAULT_API_BASE = "http://103.82.26.251"
 
 API_BASE_URL = os.environ.get("LL47_API_BASE", _DEFAULT_API_BASE).rstrip("/")
 

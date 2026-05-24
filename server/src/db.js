@@ -16,14 +16,18 @@ async function connect() {
   const uri = process.env.MONGODB_URI || "mongodb://localhost:27017";
   const dbName = process.env.MONGODB_DB || "ll47";
 
+  const isAtlas = uri.startsWith("mongodb+srv://");
+
+  const tlsOpts = isAtlas
+    ? { tls: true, tlsAllowInvalidCertificates: false, tlsAllowInvalidHostnames: false }
+    : {};
+
   client = new MongoClient(uri, {
     maxPoolSize: 20,
     serverSelectionTimeoutMS: 30000,
     connectTimeoutMS: 30000,
     family: 4,
-    tls: true,
-    tlsAllowInvalidCertificates: false,
-    tlsAllowInvalidHostnames: false,
+    ...tlsOpts,
   });
   await client.connect();
   db = client.db(dbName);
