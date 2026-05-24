@@ -1010,7 +1010,7 @@ class App:
         self.refresh()
 
     def sidebar_nav(self) -> ft.Container:
-        """Icon rail hẹp 64px kiểu Zalo Desktop."""
+        """Icon rail rộng 128px kiểu Zalo Desktop (gấp đôi)."""
         items = [
             ("home", ft.Icons.HOME_FILLED, "Trang chủ"),
             ("chat", ft.Icons.CHAT_BUBBLE_OUTLINE, "Tin nhắn"),
@@ -1027,7 +1027,7 @@ class App:
         prof = store.get("userProfile", store.seed_user_profile)
         user_name = prof.get("name", "Người dùng")
         user_role = prof.get("role", "Thành viên")
-        
+
         # ---- Build icon rail items ----
         assets_dir = Path(__file__).parent / "assets"
         has_logo = assets_dir.exists() and (assets_dir / "logo.png").exists()
@@ -1038,24 +1038,24 @@ class App:
             icon_ctrl = ft.Icon(
                 icon,
                 color=ft.Colors.WHITE if active else ft.Colors.WHITE54,
-                size=22,
+                size=36,
             )
             if key == "chat" and total_unread > 0:
                 badge_txt = str(total_unread) if total_unread < 100 else "99+"
                 icon_ctrl = ft.Stack(
                     [
-                        ft.Icon(icon, color=ft.Colors.WHITE if active else ft.Colors.WHITE54, size=22),
+                        ft.Icon(icon, color=ft.Colors.WHITE if active else ft.Colors.WHITE54, size=36),
                         ft.Container(
-                            content=ft.Text(badge_txt, size=7, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
+                            content=ft.Text(badge_txt, size=9, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
                             bgcolor=RED,
-                            border_radius=8,
-                            padding=ft.padding.symmetric(horizontal=3, vertical=1),
+                            border_radius=10,
+                            padding=ft.padding.symmetric(horizontal=4, vertical=1),
                             right=0,
                             top=0,
                         ),
                     ],
-                    width=28,
-                    height=28,
+                    width=44,
+                    height=44,
                 )
 
             rail_items.append(
@@ -1066,7 +1066,7 @@ class App:
                             ft.Text(
                                 lbl,
                                 color=ft.Colors.WHITE if active else ft.Colors.WHITE38,
-                                size=9,
+                                size=12,
                                 text_align=ft.TextAlign.CENTER,
                                 weight=ft.FontWeight.BOLD if active else ft.FontWeight.W_400,
                                 max_lines=1,
@@ -1074,32 +1074,32 @@ class App:
                             ),
                         ],
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                        spacing=3,
+                        spacing=4,
                         tight=True,
                     ),
                     alignment=ft.alignment.center,
-                    padding=ft.padding.symmetric(vertical=10),
-                    border_radius=10,
+                    padding=ft.padding.symmetric(vertical=12),
+                    border_radius=12,
                     bgcolor="rgba(255,255,255,0.12)" if active else ft.Colors.TRANSPARENT,
                     on_click=lambda e, k=key: self.set_tab(k),
                     ink=True,
-                    width=60,
+                    width=114,
                     tooltip=lbl,
                 )
             )
 
         # Logo icon ở đỉnh
         logo_widget = (
-            ft.Image(src="assets/logo.png", width=36, height=36, fit=ft.ImageFit.COVER)
+            ft.Image(src="assets/logo.png", width=72, height=72, fit=ft.ImageFit.COVER)
             if has_logo
-            else ft.Icon(ft.Icons.SHIELD, color=ft.Colors.WHITE, size=28)
+            else ft.Icon(ft.Icons.SHIELD, color=ft.Colors.WHITE, size=52)
         )
         rail_logo = ft.Container(
             content=logo_widget,
             bgcolor="rgba(255,255,255,0.15)",
-            width=40,
-            height=40,
-            border_radius=20,
+            width=80,
+            height=80,
+            border_radius=40,
             alignment=ft.alignment.center,
             clip_behavior=ft.ClipBehavior.HARD_EDGE,
         )
@@ -1112,32 +1112,32 @@ class App:
                         content=ft.Text(
                             initials(user_name),
                             color=GREEN_DARK,
-                            size=11,
+                            size=16,
                             weight=ft.FontWeight.BOLD,
                         ),
                         bgcolor=ft.Colors.WHITE,
-                        width=32,
-                        height=32,
-                        border_radius=16,
+                        width=48,
+                        height=48,
+                        border_radius=24,
                         alignment=ft.alignment.center,
                         tooltip=f"{user_name}\n{user_role}",
                         on_click=lambda e: self.set_tab("profile"),
                         ink=True,
                     ),
                     ft.Container(
-                        content=ft.Icon(ft.Icons.LOGOUT, color=ft.Colors.WHITE54, size=16),
+                        content=ft.Icon(ft.Icons.LOGOUT, color=ft.Colors.WHITE54, size=22),
                         tooltip="Đăng xuất",
                         on_click=lambda e: self.confirm_logout(),
                         ink=True,
-                        border_radius=8,
-                        padding=4,
+                        border_radius=10,
+                        padding=6,
                     ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=6,
+                spacing=8,
                 tight=True,
             ),
-            padding=ft.padding.symmetric(vertical=12),
+            padding=ft.padding.symmetric(vertical=14),
         )
 
         return ft.Container(
@@ -1146,15 +1146,15 @@ class App:
                     # Logo đỉnh
                     ft.Container(
                         content=rail_logo,
-                        padding=ft.padding.symmetric(vertical=14),
+                        padding=ft.padding.symmetric(vertical=18),
                         alignment=ft.alignment.center,
                         border=ft.border.only(bottom=ft.BorderSide(1, "rgba(255,255,255,0.08)")),
                     ),
                     # Nav icons
                     ft.Container(
-                        content=ft.Column(rail_items, spacing=4, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                        content=ft.Column(rail_items, spacing=6, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                         expand=True,
-                        padding=ft.padding.symmetric(vertical=8),
+                        padding=ft.padding.symmetric(vertical=10),
                         alignment=ft.alignment.top_center,
                     ),
                     # Avatar + logout
@@ -1167,7 +1167,7 @@ class App:
                 spacing=0,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             ),
-            width=64,
+            width=128,
             bgcolor=GREEN_DARK,
         )
 
