@@ -3574,7 +3574,7 @@ class App:
 
         # ── Emoji toolbar ─────────────────────────────────────────────────
         QUICK_EMOJIS = ["😀","😂","❤️","👍","🔥","😢","😮","🎉","👏","🙏"]
-        _emoji_bar_visible = ft.Ref[ft.Container]()
+        _emoji_bar_visible = ft.Ref()
 
         def _toggle_emoji_bar(e=None):
             bar = _emoji_bar_visible.current
