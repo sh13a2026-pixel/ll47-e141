@@ -14480,41 +14480,37 @@ def _try_auto_login(page: ft.Page) -> bool:
 
 
 async def main(page: ft.Page):
-    # Warm up backend server ngay khi app khởi động (tránh cold start khi đăng nhập)
-    firebase_auth.start_keepalive()
-
-    # Cố định tiếng Việt — tránh bị browser/OS đổi sang ngôn ngữ khác (vd: tiếng Pháp)
-    try:
-        page.locale_configuration = ft.LocaleConfiguration(
-            supported_locales=[ft.Locale("vi", "VN")],
-            current_locale=ft.Locale("vi", "VN"),
-        )
-    except Exception:
-        pass
-
-    # Setup theme preference
-    saved_theme = _load_theme_pref()
-    update_theme_colors(saved_theme)
-    page.theme_mode = saved_theme
-
-    # ====== HIỆN SPLASH NGAY LẬP TỨC — trước mọi thứ khác để không thấy nền trắng ======
-    page.bgcolor = GREEN_DARK
+    # ══════════════════════════════════════════════════════════════════
+    # BƯỚC 1 — VẼ NỀN XANH NGAY LẬP TỨC (trước mọi I/O)
+    # Mục đích: loại bỏ màn xám Flutter hiện trước khi Python code chạy.
+    # Chỉ set bgcolor + update, KHÔNG làm gì khác để nhanh nhất có thể.
+    # ══════════════════════════════════════════════════════════════════
+    page.bgcolor = "#1a4731"   # GREEN_DARK (hardcode tránh phụ thuộc biến)
     page.padding = 0
     page.spacing = 0
-    page.controls.clear()
+    page.update()              # → Flutter render nền xanh NGAY
 
-    # Logo (nếu có file)
+    # ══════════════════════════════════════════════════════════════════
+    # BƯỚC 2 — HIỆN LOGO + SPINNER (vẫn trước mọi I/O nặng)
+    # ══════════════════════════════════════════════════════════════════
     assets_dir = Path(__file__).parent / "assets"
+    page.assets_dir = str(assets_dir)
+
+    # Tìm logo (chỉ check file tồn tại, không đọc dữ liệu)
     logo_src = None
-    for fn in ("logo.png", "logo.jpg", "icon.png", "ll47_logo.png", "app_logo.png"):
+    for fn in ("logo.png", "logo.jpg", "icon.png"):
         if (assets_dir / fn).exists():
             logo_src = f"assets/{fn}"
             break
+
     logo_widget = (
-        ft.Image(src=logo_src, width=120, height=120, fit=ft.ImageFit.CONTAIN)
-        if logo_src else ft.Text("🛡", size=80, color=ft.Colors.WHITE)
+        ft.Image(src=logo_src, width=110, height=110, fit=ft.ImageFit.CONTAIN)
+        if logo_src
+        else ft.Text("🛡", size=80, color=ft.Colors.WHITE)
     )
-    page.assets_dir = str(assets_dir)
+
+    _splash_status = ft.Text("Đang khởi động...", size=12, color=ft.Colors.WHITE60)
+    page.controls.clear()
     page.add(
         ft.SafeArea(
             content=ft.Container(
@@ -14522,20 +14518,29 @@ async def main(page: ft.Page):
                     [
                         ft.Container(
                             content=logo_widget,
-                            bgcolor=ft.Colors.WHITE12, border_radius=60,
-                            padding=10,
+                            bgcolor=ft.Colors.WHITE12,
+                            border_radius=64,
+                            padding=12,
+                            width=130, height=130,
+                            alignment=ft.alignment.center,
+                            clip_behavior=ft.ClipBehavior.HARD_EDGE,
                         ),
-                        ft.Container(height=20),
-                        ft.Text("Quản lý LL47 e141", size=22,
-                                weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                        ft.Text("Trung đoàn 141 • Lực lượng 47",
-                                size=12, color=ft.Colors.WHITE70),
-                        ft.Container(height=30),
-                        ft.ProgressRing(width=36, height=36, stroke_width=3,
-                                        color=ft.Colors.WHITE),
-                        ft.Container(height=10),
-                        ft.Text("Đang khởi động...",
-                                size=12, color=ft.Colors.WHITE70),
+                        ft.Container(height=24),
+                        ft.Text(
+                            "Quản lý LL47 e141",
+                            size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE,
+                        ),
+                        ft.Text(
+                            "Trung đoàn 141 • Lực lượng 47",
+                            size=12, color=ft.Colors.WHITE70,
+                        ),
+                        ft.Container(height=36),
+                        ft.ProgressRing(
+                            width=32, height=32, stroke_width=3,
+                            color=ft.Colors.WHITE,
+                        ),
+                        ft.Container(height=8),
+                        _splash_status,
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     spacing=4, tight=True,
@@ -14544,15 +14549,36 @@ async def main(page: ft.Page):
                 expand=True,
                 gradient=ft.LinearGradient(
                     begin=ft.alignment.top_left, end=ft.alignment.bottom_right,
-                    colors=[GREEN_DARK, GREEN_MID],
+                    colors=["#1a4731", "#2d6a4f"],
                 ),
             ),
             expand=True,
         )
     )
-    page.update()  # render splash NGAY
+    page.update()   # hiện logo + spinner
 
-    # ====== Cài đặt phần còn lại của page (sau khi splash đã hiện) ======
+    # ══════════════════════════════════════════════════════════════════
+    # BƯỚC 3 — I/O NẶNG (theme, locale, v.v.) — splash đã hiện rồi
+    # ══════════════════════════════════════════════════════════════════
+
+    # Warm up backend (không chặn — chạy ngầm)
+    firebase_auth.start_keepalive()
+
+    # Locale
+    try:
+        page.locale_configuration = ft.LocaleConfiguration(
+            supported_locales=[ft.Locale("vi", "VN")],
+            current_locale=ft.Locale("vi", "VN"),
+        )
+    except Exception:
+        pass
+
+    # Theme
+    saved_theme = _load_theme_pref()
+    update_theme_colors(saved_theme)
+    page.theme_mode = saved_theme
+
+    # Cài đặt thêm cho page (window size, theme, title)
     page.title = "Quản lý LL47 e141"
     page.theme_mode = saved_theme
     try:
