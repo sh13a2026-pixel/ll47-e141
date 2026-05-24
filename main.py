@@ -571,7 +571,7 @@ class App:
         self.overlay_from_tab: str | None = None
         self.toast_snackbar: ft.SnackBar | None = None
         # cache "current view" để rebuild khi data đổi
-        self.body = ft.Container(expand=True, bgcolor=BG2, clip_behavior=ft.ClipBehavior.HARD_EDGE)
+        self.body = ft.Container(expand=True, bgcolor=BG, clip_behavior=ft.ClipBehavior.HARD_EDGE)
         # Persistent nav/header boxes — chỉ update content, không rebuild frame
         self._header_box = ft.Container()
         self._nav_box = ft.Container()
@@ -1859,9 +1859,14 @@ class App:
         controls = [hero]
         if live_camps:
             controls.append(f47_section)
-        controls += [stats, notif_block]
+        controls += [stats, notif_block, ft.Container(height=16)]
 
-        return ft.ListView(controls=controls, expand=True, padding=0)
+        return ft.Column(
+            controls=controls,
+            scroll=ft.ScrollMode.AUTO,
+            spacing=0,
+            expand=True,
+        )
 
     def handle_notif_click(self, n: dict) -> None:
         # Mark read trên ALL notifs (không dùng filtered list để khỏi mất ngữ cảnh)
