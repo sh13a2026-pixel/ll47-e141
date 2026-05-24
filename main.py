@@ -41,6 +41,7 @@ from app.firestore_client import FirestoreClient
 from app import firebase_storage as fb_storage
 from app import fcm
 from app import presence as _presence
+from app import desktop_notif as _dnotif
 
 # ============================================================
 # ===== TRẠNG THÁI AUTH TOÀN CỤC                          =====
@@ -654,6 +655,8 @@ class App:
 
         stop_event = threading.Event()
         self._realtime_stop["event"] = stop_event
+        # Theo dõi số notif đã biết để phát hiện notif mới
+        _known_notif_count: list[int] = [len(store.get("notifs", lambda: []))]
 
         def loop():
             while not stop_event.wait(timeout=30.0):
@@ -661,6 +664,29 @@ class App:
                     store.STORE.sync_from_firestore()
                     store.STORE.flush_pending()
                     store.refresh_soldiers_from_users()
+                except Exception:
+                    pass
+
+                # Phát hiện thông báo mới → desktop notification
+                try:
+                    my_uid_sync = AUTH_STATE.get("uid") or AUTH_STATE.get("localId") or ""
+                    all_notifs = store.get("notifs", lambda: [])
+                    new_count = len(all_notifs)
+                    old_count = _known_notif_count[0]
+                    if new_count > old_count:
+                        # Lấy các notif mới (chưa đọc, dành cho mình)
+                        new_notifs = all_notifs[old_count:]
+                        for n in new_notifs:
+                            target = str(n.get("targetUid") or n.get("target_uid") or "")
+                            if target and target != str(my_uid_sync):
+                                continue  # không phải cho mình
+                            if n.get("read"):
+                                continue
+                            title = str(n.get("title") or "Thông báo mới")
+                            body = str(n.get("body") or n.get("message") or "")
+                            _dnotif.notify_system(title, body)
+                            break  # chỉ notify 1 lần
+                    _known_notif_count[0] = new_count
                 except Exception:
                     pass
 
@@ -3432,6 +3458,24 @@ class App:
             def _start_listener():
                 try:
                     def on_chat_messages(items: list[dict]):
+                        # Phát hiện tin mới từ người khác → desktop notification
+                        try:
+                            prev_count = len(_render_state.get("ids", []))
+                            new_msgs = items[prev_count:] if len(items) > prev_count else []
+                            for nm in new_msgs:
+                                sender_id = str(nm.get("senderId") or "")
+                                if sender_id and sender_id != str(my_uid):
+                                    sender_name = nm.get("senderName") or "Ai đó"
+                                    txt = nm.get("text") or ""
+                                    # Chỉ notify khi app không focus hoặc đang ở tab khác
+                                    _dnotif.notify_chat(
+                                        sender_name=sender_name,
+                                        message=txt,
+                                        room_name=name if is_group_room else None,
+                                    )
+                                    break  # chỉ notify 1 lần dù nhiều tin mới
+                        except Exception:
+                            pass
                         render_messages(items)
                         if self.tab == "chat":
                             try:
@@ -6221,6 +6265,11 @@ class App:
                             sender_name=_creator_name,
                         )
                 self.toast(f"Đã phát động: {title}")
+                # Desktop notification cho người phát động
+                _dnotif.notify_system(
+                    "Chiến dịch F47",
+                    f"Đã phát động: {title} • Hạn {hours}h • {len(members)} thành viên",
+                )
             try:
                 _dlg.open = False
             except Exception:
@@ -10987,6 +11036,11 @@ class App:
             # Lưu local ngay lập tức
             store.set_value("soldiers", soldiers)
             self.toast("✅ Đã duyệt tài khoản")
+            # Desktop notification
+            _dnotif.notify_system(
+                "Duyệt tài khoản",
+                f"Đã duyệt: {soldiers[j].get('name') or soldiers[j].get('username') or soldier_id}",
+            )
             # Refresh UI ngay
             if self.current_module == "units":
                 self.body.content = self.module_units()

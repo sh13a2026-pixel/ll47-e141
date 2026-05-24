@@ -12,3 +12,7 @@ websocket-client>=1.7.0
 # image_utils.py có fallback thuần Python nên app vẫn hoạt động đầy đủ.
 # Uncomment nếu build desktop:
 # Pillow>=10.2.0
+
+# Desktop notification (Windows toast) — chỉ dùng trên desktop, bỏ qua trên Android/iOS.
+# Tự động fallback sang plyer nếu không có winotify.
+winotify>=1.1.0; sys_platform == "win32"
