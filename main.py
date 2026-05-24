@@ -14766,6 +14766,32 @@ def _try_auto_login(page: ft.Page) -> bool:
 
 
 async def main(page: ft.Page):
+    # ── Global error handler: bắt mọi exception, hiện lên màn hình thay vì trắng ──
+    import traceback as _tb
+    try:
+        await _main_inner(page)
+    except Exception as _e:
+        _err = _tb.format_exc()
+        try:
+            page.controls.clear()
+            page.bgcolor = "#1a0000"
+            page.add(ft.SafeArea(content=ft.Column([
+                ft.Text("⚠️ App bị lỗi — vui lòng chụp màn hình gửi admin",
+                        color=ft.Colors.WHITE, size=14, weight=ft.FontWeight.BOLD),
+                ft.Text(str(_e), color="#ff8080", size=12),
+                ft.Container(
+                    content=ft.Text(_err, color="#ffaaaa", size=10,
+                                    selectable=True, font_family="monospace"),
+                    bgcolor="#2a0000", border_radius=8, padding=10,
+                    height=400,
+                ),
+            ], scroll=ft.ScrollMode.AUTO, spacing=8)))
+            page.update()
+        except Exception:
+            pass
+
+
+async def _main_inner(page: ft.Page):
     # ══════════════════════════════════════════════════════════════════
     # BƯỚC 1 — VẼ NỀN XANH NGAY LẬP TỨC (trước mọi I/O)
     # Mục đích: loại bỏ màn xám Flutter hiện trước khi Python code chạy.
