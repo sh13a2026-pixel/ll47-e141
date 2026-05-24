@@ -6463,10 +6463,37 @@ class App:
                             padding=ft.padding.symmetric(horizontal=8, vertical=3),
                         ),
                     ], vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
-                    *([ft.Text(note, size=11, color=TEXT_MUTED,
-                              max_lines=2)] if note else []),
-                    *([ft.Text(f"🔗 {len(links)} link  •  📷 {sub.get('imageCount',0)} ảnh",
-                              size=10, color=TEXT_MUTED)] if links or sub.get("imageCount") else []),
+                    *([ft.Text(note, size=11, color=TEXT_MUTED, max_lines=2)] if note else []),
+                    *([
+                        ft.Row(
+                            [
+                                ft.TextButton(
+                                    content=ft.Row([
+                                        ft.Text(link if len(link) < 40 else link[:37]+"...", size=11, color=BLUE, weight=ft.FontWeight.BOLD, overflow=ft.TextOverflow.ELLIPSIS),
+                                        ft.Icon(ft.Icons.OPEN_IN_NEW, size=12, color=BLUE)
+                                    ], spacing=4, tight=True),
+                                    on_click=lambda e, u=link: self.page.launch_url(u),
+                                    style=ft.ButtonStyle(padding=0),
+                                )
+                                for link in links
+                            ],
+                            wrap=True, spacing=10, run_spacing=4
+                        )
+                    ] if links else []),
+                    *([
+                        ft.Row(
+                            [
+                                ft.Container(
+                                    content=ft.Image(src=img_url, width=60, height=60, fit=ft.ImageFit.COVER, border_radius=4),
+                                    on_click=lambda e, u=img_url: open_image_viewer(self.page, u),
+                                    ink=True, border_radius=4,
+                                    tooltip="Bấm để xem ảnh"
+                                )
+                                for img_url in sub.get("images", [])
+                            ],
+                            wrap=True, spacing=10, run_spacing=10
+                        )
+                    ] if sub.get("images") else []),
                 ], spacing=4),
                 padding=10,
                 border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
