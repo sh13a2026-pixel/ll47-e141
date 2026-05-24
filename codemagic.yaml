@@ -64,8 +64,11 @@ workflows:
         script: |
           # App LL47 đã migrate sang Node.js backend — không dùng Firebase gì cả.
           # firebase_config.py chỉ chứa URL config (không import firebase).
-          # → Không cần --include-packages, flet build thẳng một bước.
-          flet build apk --project ll47_e141 --org vn.mil.e141
+          # flet_permission_handler: cần thiết cho ft.PermissionHandler() xin quyền camera/storage/notification.
+          flet build apk \
+            --project ll47_e141 \
+            --org vn.mil.e141 \
+            --include-packages flet_permission_handler
 
       - name: Copy APK to output
         script: |

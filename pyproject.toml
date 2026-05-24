@@ -43,6 +43,9 @@ ios.info_plist."NSPhotoLibraryUsageDescription" = "Cần truy cập ảnh để 
 
 # Flutter packages được truyền qua --flutter-packages khi build
 # firebase_core, firebase_messaging, shared_preferences
+# flet_permission_handler: cần cho ft.PermissionHandler() xin quyền camera/storage/notification
+[tool.flet.flutter]
+packages = ["flet_permission_handler"]
 
 # ============== SPLASH SCREEN ==============
 # Màu nền splash khi mở app (thay vì màn trắng) — khớp với GREEN_DARK trong app

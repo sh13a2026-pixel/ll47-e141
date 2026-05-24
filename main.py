@@ -14634,12 +14634,22 @@ async def main(page: ft.Page):
     page.update()
 
     # Xin quyền hệ điều hành (async, không chặn splash)
+    # Chỉ chạy trên Android/iOS — bỏ qua hoàn toàn trên desktop/web.
+    # page.services chỉ có từ Flet 0.27+; dùng page.overlay để tương thích 0.25.
     try:
-        ph = ft.PermissionHandler()
-        page.services.append(ph)
-        await ph.request_async(ft.PermissionType.NOTIFICATION)
-        await ph.request_async(ft.PermissionType.STORAGE)
-        await ph.request_async(ft.PermissionType.CAMERA)
+        import os as _os
+        _is_mobile = (
+            _os.environ.get("ANDROID_ROOT") is not None
+            or _os.environ.get("ANDROID_DATA") is not None
+        )
+        if _is_mobile:
+            ph = ft.PermissionHandler()
+            # Flet 0.25: thêm vào overlay thay vì page.services
+            page.overlay.append(ph)
+            page.update()
+            await ph.request_async(ft.PermissionType.NOTIFICATION)
+            await ph.request_async(ft.PermissionType.STORAGE)
+            await ph.request_async(ft.PermissionType.CAMERA)
     except Exception:
         pass
 
