@@ -36,6 +36,34 @@ app.use(storage.publicRouter);
 app.get("/health", (req, res) => res.json({ ok: true, ts: Date.now() }));
 app.get("/", (req, res) => res.json({ name: "ll47-backend", status: "ok" }));
 
+app.get("/api/sys/config", async (req, res) => {
+  try {
+    const { getDb } = require("./db");
+    const db = getDb();
+    let config = await db.collection("system_config").findOne({});
+    if (!config) {
+      config = {
+        minAppVersion: "2.6.0",
+        latestVersion: "2.6.0",
+        updateUrl: "https://drive.google.com"
+      };
+      await db.collection("system_config").insertOne(config);
+    }
+    return res.json({
+      minAppVersion: config.minAppVersion || "2.6.0",
+      latestVersion: config.latestVersion || "2.6.0",
+      updateUrl: config.updateUrl || "https://drive.google.com"
+    });
+  } catch (e) {
+    console.error("[server] Lỗi khi lấy config hệ thống:", e);
+    return res.json({
+      minAppVersion: "2.6.0",
+      latestVersion: "2.6.0",
+      updateUrl: "https://drive.google.com"
+    });
+  }
+});
+
 // 3) Auth (không yêu cầu token sẵn)
 app.use("/auth", jsonParser, auth.router);
 
