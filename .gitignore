@@ -2,6 +2,9 @@
 __pycache__/
 *.pyc
 .venv/
+.venv_temp/
+temp_build_src/
+8.9.1
 build/
 dist/
 build_pyi/
@@ -29,7 +32,10 @@ google-services.json
 python_logs.txt
 run_error.log
 dart_output.log
+logcat.txt
+run_output.txt
 
 # ===== OS =====
 .DS_Store
 Thumbs.db
+

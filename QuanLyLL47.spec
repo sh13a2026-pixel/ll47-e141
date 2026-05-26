@@ -1,9 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('D:\\Projects\\ll47_v2\\assets', 'assets'), ('D:\\Projects\\ll47_v2\\storage', 'storage'), ('D:\\Projects\\ll47_v2\\app', 'app')]
+datas = [('assets', 'assets'), ('app', 'app')]
 binaries = []
-hiddenimports = ['flet', 'flet.fastapi', 'PIL']
+hiddenimports = ['flet', 'flet.fastapi', 'PIL', 'socketio', 'websocket']
 tmp_ret = collect_all('flet')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
@@ -44,7 +44,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['D:\\Projects\\ll47_v2\\assets\\logo.ico'],
+    icon=['assets\\logo.ico'],
 )
 coll = COLLECT(
     exe,

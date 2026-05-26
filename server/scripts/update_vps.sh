@@ -3,7 +3,7 @@
 # update_vps.sh — Cập nhật code LL47 Backend trên VPS
 #
 # Chạy khi bạn push code mới lên GitHub và muốn VPS lấy code mới:
-#   ssh root@103.82.26.251 "bash /opt/ll47-backend/server/scripts/update_vps.sh"
+#   ssh root@27.71.20.168 "bash /opt/ll47-backend/server/scripts/update_vps.sh"
 # ============================================================================
 set -euo pipefail
 

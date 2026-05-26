@@ -17,7 +17,7 @@ import os
 # ---------------------------------------------------------------------------
 # URL backend — ĐỔI dòng này thành URL production khi phát hành.
 # ---------------------------------------------------------------------------
-_DEFAULT_API_BASE = "http://103.82.26.251"
+_DEFAULT_API_BASE = "http://27.71.20.168"
 
 API_BASE_URL = os.environ.get("LL47_API_BASE", _DEFAULT_API_BASE).rstrip("/")
 

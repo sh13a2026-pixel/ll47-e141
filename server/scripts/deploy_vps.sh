@@ -3,7 +3,7 @@
 # deploy_vps.sh — Triển khai LL47 Backend lên VPS Ubuntu 24.04 (một lần)
 #
 # Cách dùng:
-#   1. SSH vào VPS:  ssh root@103.82.26.251
+#   1. SSH vào VPS:  ssh root@27.71.20.168
 #   2. Chạy:
 #      curl -sL https://raw.githubusercontent.com/sh13a2026-pixel/ll47-e141/main/server/scripts/deploy_vps.sh | bash
 #      HOẶC copy file này lên VPS rồi chạy:  bash deploy_vps.sh
@@ -16,7 +16,7 @@ APP_DIR="/opt/ll47-backend"
 REPO_URL="https://github.com/sh13a2026-pixel/ll47-e141.git"
 NODE_MAJOR=20
 MONGO_VERSION="7.0"
-VPS_IP="103.82.26.251"
+VPS_IP="27.71.20.168"
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════╗"
